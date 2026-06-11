@@ -179,31 +179,6 @@ $recentUsersStmt->execute();
                 </div>
             </div>
 
-            <!-- Right: Quick Actions or Info -->
-            <div class="section-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white;">
-                <div class="section-header">
-                    <h2 style="color: white;">Informasi Sistem</h2>
-                </div>
-                <div style="margin-top: 20px;">
-                    <p style="margin-bottom: 15px; line-height: 1.6; opacity: 0.9;">
-                        Sistem Presensi V1.0 terkoneksi dengan database MySQL secara native menggunakan PDO.
-                    </p>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-check-circle" style="color: #6EE7B7;"></i> Database Connected
-                        </li>
-                        <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-check-circle" style="color: #6EE7B7;"></i> Models Loaded
-                        </li>
-                        <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-check-circle" style="color: #6EE7B7;"></i> Environment Configured
-                        </li>
-                    </ul>
-                    <button style="margin-top: 20px; padding: 10px 20px; background: white; color: var(--primary); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%;">
-                        Generate Report
-                    </button>
-                </div>
-            </div>
         </div>
     </main>
 
