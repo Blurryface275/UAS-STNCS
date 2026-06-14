@@ -80,7 +80,10 @@ $recentUsersStmt->execute();
             </div>
             <div class="user-profile">
                 <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Admin User'); ?>&background=4F46E5&color=fff" alt="Admin Profile">
-                <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin User'); ?></span>
+                <div>
+                    <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin User'); ?></span>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Role: <?php echo htmlspecialchars($_SESSION['user_role'] ?? 'User'); ?></div>
+                </div>
                 <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: var(--text-muted);"></i>
             </div>
         </header>

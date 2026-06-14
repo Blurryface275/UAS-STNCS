@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $userData['id'];
             $_SESSION['user_name'] = $userData['nama'];
             $_SESSION['user_email'] = $userData['email'];
+            $_SESSION['user_role_id'] = $userData['tipe_users_id'];
+            $_SESSION['user_role'] = $userData['role_name'] ?? 'User';
 
             header('Location: index.php');
             exit();

@@ -12,13 +12,16 @@ class User {
     public $jabatan;
     public $status;
     public $tipe_users_id;
+    public $role_name;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
     public function read() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC";
+        $query = "SELECT u.*, t.nama AS role_name FROM " . $this->table_name . " u "
+            . "LEFT JOIN tipe_users t ON u.tipe_users_id = t.id "
+            . "ORDER BY u.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -34,7 +37,9 @@ class User {
     }
 
     public function login($email, $password) {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE email = ? LIMIT 1";
+        $query = "SELECT u.*, t.nama AS role_name FROM " . $this->table_name . " u "
+            . "LEFT JOIN tipe_users t ON u.tipe_users_id = t.id "
+            . "WHERE u.email = ? LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $email);
         $stmt->execute();
