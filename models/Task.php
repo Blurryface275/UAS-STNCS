@@ -10,21 +10,25 @@ class Task {
     public $deskripsi;
     public $durasi_jam;
     public $users_id;
+    public $user_name;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    // Example basic method: Fetch all
     public function read() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC";
+        $query = "SELECT t.*, u.nama AS user_name FROM " . $this->table_name . " t "
+            . "LEFT JOIN users u ON t.users_id = u.id "
+            . "ORDER BY t.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
 
     public function readPaging($from_record_num, $records_per_page) {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC LIMIT ?, ?";
+        $query = "SELECT t.*, u.nama AS user_name FROM " . $this->table_name . " t "
+            . "LEFT JOIN users u ON t.users_id = u.id "
+            . "ORDER BY t.id DESC LIMIT ?, ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
         $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);

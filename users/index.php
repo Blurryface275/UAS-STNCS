@@ -1,4 +1,5 @@
 <?php
+require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/User.php';
 
@@ -26,7 +27,6 @@ $total_pages = ceil($total_rows / $records_per_page);
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <i class="fa-solid fa-fingerprint fa-2x" style="color: var(--primary-light);"></i>
@@ -42,7 +42,6 @@ $total_pages = ceil($total_rows / $records_per_page);
         </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
         <header class="top-header">
             <div class="welcome-msg">
@@ -93,7 +92,6 @@ $total_pages = ceil($total_rows / $records_per_page);
                 </table>
             </div>
 
-            <!-- Pagination Controls -->
             <?php if ($total_pages > 1) : ?>
                 <div class="pagination">
                     <?php if ($page > 1) : ?>

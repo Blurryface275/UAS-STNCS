@@ -31,7 +31,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Sidebar */
 .sidebar {
   width: 260px;
   background-color: var(--sidebar-bg);
@@ -96,7 +95,6 @@ body {
   color: var(--primary-light);
 }
 
-/* Main Content */
 .main-content {
   flex: 1;
   margin-left: 260px;
@@ -104,7 +102,6 @@ body {
   transition: var(--transition);
 }
 
-/* Tops */
 .top-header {
   display: flex;
   justify-content: space-between;
@@ -146,7 +143,6 @@ body {
   font-size: 0.9rem;
 }
 
-/* Stats Cards */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -215,7 +211,6 @@ body {
   color: #f97316;
 }
 
-/* Tables or Lists section */
 .dashboard-sections {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -253,11 +248,78 @@ body {
   color: var(--primary-light);
 }
 
-/* Simple Table */
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f4f7fc;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+}
+
+.login-card h1 {
+  margin-bottom: 16px;
+  font-size: 1.8rem;
+  color: #111827;
+}
+
+.login-card p {
+  margin-bottom: 24px;
+  color: #6b7280;
+}
+
+.login-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-size: 1rem;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.login-card button:hover {
+  background: var(--primary-light);
+}
+
+.login-error {
+  margin-bottom: 18px;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
 
 th,
 td {
@@ -294,7 +356,6 @@ td {
   color: #991b1b;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .dashboard-sections {
     grid-template-columns: 1fr;
@@ -311,7 +372,6 @@ td {
   }
 }
 
-/* Pagination Styles */
 .pagination {
   display: flex;
   justify-content: flex-end;

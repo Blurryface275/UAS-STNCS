@@ -10,20 +10,25 @@ class Verification {
     public $tanggal_approval;
     public $tasks_idtasks;
     public $users_id;
+    public $user_name;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
     public function read() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC";
+        $query = "SELECT v.*, u.nama AS user_name FROM " . $this->table_name . " v "
+            . "LEFT JOIN users u ON v.users_id = u.id "
+            . "ORDER BY v.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
     }
 
     public function readPaging($from_record_num, $records_per_page) {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC LIMIT ?, ?";
+        $query = "SELECT v.*, u.nama AS user_name FROM " . $this->table_name . " v "
+            . "LEFT JOIN users u ON v.users_id = u.id "
+            . "ORDER BY v.id DESC LIMIT ?, ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
         $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);

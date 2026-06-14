@@ -1,4 +1,5 @@
 <?php
+require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/Verification.php';
 
@@ -56,6 +57,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                         <tr>
                             <th>ID TASK</th>
                             <th>ID USER</th>
+                            <th>NAMA USER</th>
                             <th>CATATAN</th>
                             <th>STATUS</th>
                         </tr>
@@ -65,6 +67,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                             <tr>
                                 <td>#<?php echo htmlspecialchars($row['tasks_idtasks']); ?></td>
                                 <td>ID <?php echo htmlspecialchars($row['users_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['user_name'] ?? '-'); ?></td>
                                 <td><?php echo htmlspecialchars($row['catatan']); ?></td>
                                 <td>
                                     <?php if ($row['status'] == 'Disetujui') : ?>
@@ -81,7 +84,6 @@ $total_pages = ceil($total_rows / $records_per_page);
                 </table>
             </div>
 
-            <!-- Pagination Controls -->
             <?php if ($total_pages > 1) : ?>
                 <div class="pagination">
                     <?php if ($page > 1) : ?>

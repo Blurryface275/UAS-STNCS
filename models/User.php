@@ -33,6 +33,24 @@ class User {
         return $stmt;
     }
 
+    public function login($email, $password) {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE email = ? LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $email);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return false;
+        }
+
+        if (password_verify($password, $row['password']) || $password === $row['password']) {
+            return $row;
+        }
+
+        return false;
+    }
+
     public function count() {
         $query = "SELECT COUNT(*) as total_row FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);

@@ -1,12 +1,12 @@
 <?php
-// Include the database and models
+// Include the database, auth and models
+require_once 'auth.php';
 require_once 'Database.php';
 require_once 'models/User.php';
 require_once 'models/Kehadiran.php';
 require_once 'models/Task.php';
 require_once 'models/Verification.php';
 
-// Instantiate DB connection
 $database = new Database();
 $db = $database->getConnection();
 
@@ -14,13 +14,11 @@ if (!$db) {
     die("Koneksi database gagal. Pastikan XAMPP nyala dan .env dikonfigurasi dengan benar.");
 }
 
-// Instantiate objects
 $user = new User($db);
 $kehadiran = new Kehadiran($db);
 $task = new Task($db);
 $verification = new Verification($db);
 
-// Get stats
 $stmtUsers = $user->read();
 $totalUsers = $stmtUsers->rowCount();
 
@@ -31,7 +29,6 @@ $stmtTask = $task->read();
 $totalTask = $stmtTask->rowCount();
 
 $stmtVerification = $verification->read();
-// Let's count how many pending verifications
 $totalPending = 0;
 while ($row = $stmtVerification->fetch(PDO::FETCH_ASSOC)) {
     if ($row['status'] == 'Pending') {
@@ -39,7 +36,6 @@ while ($row = $stmtVerification->fetch(PDO::FETCH_ASSOC)) {
     }
 }
 
-// Get recent 5 users for the table
 $recentUsersQuery = "SELECT u.nama, u.email, u.divisi, u.status, t.nama as tipe_user 
                      FROM users u 
                      LEFT JOIN tipe_users t ON u.tipe_users_id = t.id 
@@ -54,17 +50,13 @@ $recentUsersStmt->execute();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Sistem Presensi</title>
-    <!-- Premium Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <i class="fa-solid fa-fingerprint fa-2x" style="color: var(--primary-light);"></i>
@@ -80,22 +72,19 @@ $recentUsersStmt->execute();
         </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Header -->
         <header class="top-header">
             <div class="welcome-msg">
-                <h1>Selamat Datang, Admin! 👋</h1>
+                <h1>Selamat Datang, <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin'); ?>! 👋</h1>
                 <p>Berikut adalah ringkasan data presensi hari ini.</p>
             </div>
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Admin+User&background=4F46E5&color=fff" alt="Admin Profile">
-                <span>Admin User</span>
+                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Admin User'); ?>&background=4F46E5&color=fff" alt="Admin Profile">
+                <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Admin User'); ?></span>
                 <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: var(--text-muted);"></i>
             </div>
         </header>
 
-        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-info">
@@ -138,9 +127,7 @@ $recentUsersStmt->execute();
             </div>
         </div>
 
-        <!-- Dashboard Sections -->
         <div class="dashboard-sections">
-            <!-- Left: Table Karyawan -->
             <div class="section-card">
                 <div class="section-header">
                     <h2>Karyawan Terbaru</h2>

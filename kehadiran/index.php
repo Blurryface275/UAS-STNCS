@@ -1,4 +1,5 @@
 <?php
+require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/Kehadiran.php';
 
@@ -58,6 +59,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                     <thead>
                         <tr>
                             <th>ID USER</th>
+                            <th>NAMA USER</th>
                             <th>TANGGAL</th>
                             <th>CLOCK IN</th>
                             <th>CLOCK OUT</th>
@@ -67,6 +69,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                         <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) : ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['users_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['user_name'] ?? '-'); ?></td>
                                 <td><?php echo htmlspecialchars($row['tanggal']); ?></td>
                                 <td><?php echo htmlspecialchars($row['clock_in']); ?></td>
                                 <td><?php echo htmlspecialchars($row['clock_out']); ?></td>
@@ -76,7 +79,6 @@ $total_pages = ceil($total_rows / $records_per_page);
                 </table>
             </div>
 
-            <!-- Pagination Controls -->
             <?php if ($total_pages > 1) : ?>
                 <div class="pagination">
                     <?php if ($page > 1) : ?>
