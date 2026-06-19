@@ -7,4 +7,17 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $loginPath);
     exit();
 }
+
+function requireRole($allowedRoles) {
+    if (!is_array($allowedRoles)) {
+        $allowedRoles = [$allowedRoles];
+    }
+
+    $userRole = $_SESSION['user_role'] ?? '';
+
+    if (!in_array($userRole, $allowedRoles)) {
+        header('Location: ../index.php');
+        exit();
+    }
+}
 ?>

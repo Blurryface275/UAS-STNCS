@@ -2,6 +2,7 @@
 require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/Verification.php';
+requireRole(['Admin', 'Manager', 'Supervisor']);
 
 $database = new Database();
 $db = $database->getConnection();

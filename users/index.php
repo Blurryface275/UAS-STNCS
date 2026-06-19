@@ -1,5 +1,6 @@
 <?php
 require_once '../auth.php';
+requireRole(['Admin']);
 require_once '../Database.php';
 require_once '../models/User.php';
 
