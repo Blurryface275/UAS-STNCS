@@ -42,5 +42,49 @@ class Kehadiran {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total_row'];
     }
+
+    public function getTodayAttendance($users_id) {
+        $query = "SELECT * FROM " . $this->table_name . "
+                  WHERE users_id = ? AND tanggal = CURDATE()
+                  LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $users_id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function clockIn($users_id) {
+        $existing = $this->getTodayAttendance($users_id);
+
+        if ($existing) {
+            return false;
+        }
+
+        $query = "INSERT INTO " . $this->table_name . "
+                  (tanggal, clock_in, users_id)
+                  VALUES (CURDATE(), NOW(), ?)";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $users_id);
+
+        return $stmt->execute();
+    }
+
+    public function clockOut($users_id) {
+        $existing = $this->getTodayAttendance($users_id);
+
+        if (!$existing || !empty($existing['clock_out'])) {
+            return false;
+        }
+
+        $query = "UPDATE " . $this->table_name . "
+                  SET clock_out = NOW()
+                  WHERE users_id = ? AND tanggal = CURDATE()";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $users_id);
+
+        return $stmt->execute();
+    }
 }
 ?>

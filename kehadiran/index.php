@@ -8,8 +8,26 @@ $database = new Database();
 $db = $database->getConnection();
 
 $kehadiran = new Kehadiran($db);
+$message = '';
 
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId = $_SESSION['user_id'];
+
+    if (isset($_POST['clock_in'])) {
+        $message = $kehadiran->clockIn($userId)
+            ? 'Clock-in berhasil.'
+            : 'Clock-in gagal. Kamu sudah clock-in hari ini.';
+    }
+
+    if (isset($_POST['clock_out'])) {
+        $message = $kehadiran->clockOut($userId)
+            ? 'Clock-out berhasil.'
+            : 'Clock-out gagal. Kamu belum clock-in atau sudah clock-out.';
+    }
+}
+
+$todayAttendance = $kehadiran->getTodayAttendance($_SESSION['user_id']);
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $records_per_page = 5;
 $from_record_num = ($records_per_page * $page) - $records_per_page;
 
@@ -19,6 +37,7 @@ $total_pages = ceil($total_rows / $records_per_page);
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +46,7 @@ $total_pages = ceil($total_rows / $records_per_page);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -39,7 +59,8 @@ $total_pages = ceil($total_rows / $records_per_page);
             <li><a href="index.php" class="active"><i class="fa-solid fa-clock-rotate-left"></i> Kehadiran</a></li>
             <li><a href="../tasks/index.php"><i class="fa-solid fa-list-check"></i> Tasks / Aktivitas</a></li>
             <li><a href="../verification/index.php"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
-            <li style="margin-top: auto; padding-top: 20px;"><a href="../logout.php" style="color: #ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            <li style="margin-top: auto; padding-top: 20px;"><a href="../logout.php" style="color: #ef4444;"><i
+                        class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
         </ul>
     </aside>
 
@@ -51,51 +72,37 @@ $total_pages = ceil($total_rows / $records_per_page);
             </div>
         </header>
 
-        <div class="section-card">
-            <div class="section-header">
-                <h2>Data Kehadiran Terbaru</h2>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID USER</th>
-                            <th>NAMA USER</th>
-                            <th>TANGGAL</th>
-                            <th>CLOCK IN</th>
-                            <th>CLOCK OUT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) : ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($row['users_id']); ?></td>
-                                <td><?php echo htmlspecialchars($row['user_name'] ?? '-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['tanggal']); ?></td>
-                                <td><?php echo htmlspecialchars($row['clock_in']); ?></td>
-                                <td><?php echo htmlspecialchars($row['clock_out']); ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <?php if ($total_pages > 1) : ?>
-                <div class="pagination">
-                    <?php if ($page > 1) : ?>
-                        <a href="?page=<?php echo $page - 1; ?>" class="page-link"><i class="fa-solid fa-chevron-left"></i> Prev</a>
-                    <?php endif; ?>
-
-                    <?php for ($i = 1; $i <= $total_pages; $i++) : ?>
-                        <a href="?page=<?php echo $i; ?>" class="page-link <?php echo $i == $page ? 'active' : ''; ?>"><?php echo $i; ?></a>
-                    <?php endfor; ?>
-
-                    <?php if ($page < $total_pages) : ?>
-                        <a href="?page=<?php echo $page + 1; ?>" class="page-link">Next <i class="fa-solid fa-chevron-right"></i></a>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
+        <div class="section-header">
+            <h2>Data Kehadiran Terbaru</h2>
         </div>
+
+        <?php if ($message): ?>
+            <div style="margin-bottom: 15px; padding: 12px; background: #dcfce7; color: #166534; border-radius: 8px;">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($_SESSION['user_role'] === 'Karyawan'): ?>
+            <form method="POST" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <?php if (!$todayAttendance): ?>
+                    <button type="submit" name="clock_in"
+                        style="padding: 10px 16px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-right-to-bracket"></i> Clock In
+                    </button>
+                <?php elseif (empty($todayAttendance['clock_out'])): ?>
+                    <button type="submit" name="clock_out"
+                        style="padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Clock Out
+                    </button>
+                <?php else: ?>
+                    <div style="padding: 10px 16px; background: #e5e7eb; border-radius: 8px;">
+                        Kehadiran hari ini sudah lengkap.
+                    </div>
+                <?php endif; ?>
+            </form>
+        <?php endif; ?>
+
     </main>
 </body>
+
 </html>
