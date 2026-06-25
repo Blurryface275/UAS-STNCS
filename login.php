@@ -29,7 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $userData['nama'];
             $_SESSION['user_email'] = $userData['email'];
             $_SESSION['user_role_id'] = $userData['tipe_users_id'];
-            $_SESSION['user_role'] = $userData['role_name'] ?? 'User';
+            
+            $role = current(explode(' ', trim($userData['role_name'] ?? 'Staff'))); // Safely get first word just in case
+            
+            $powerLevels = [
+                'Admin' => 5,
+                'Direktur' => 4,
+                'Manager' => 3,
+                'Supervisor' => 2,
+                'Staff' => 1
+            ];
+            
+            if (!isset($powerLevels[$role])) {
+                $role = 'Staff'; // fallback
+            }
+            
+            $_SESSION['user_role'] = $role;
+            $_SESSION['power_level'] = $powerLevels[$role];
 
             header('Location: index.php');
             exit();

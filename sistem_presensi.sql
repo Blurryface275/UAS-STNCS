@@ -99,15 +99,10 @@ CREATE TABLE `tipe_users` (
 
 INSERT INTO `tipe_users` (`id`, `nama`) VALUES
 (1, 'Admin'),
-(2, 'Manager'),
-(3, 'Karyawan'),
+(2, 'Direktur'),
+(3, 'Manager'),
 (4, 'Supervisor'),
-(5, 'HR'),
-(6, 'Finance'),
-(7, 'Intern'),
-(8, 'Operator'),
-(9, 'Guest'),
-(10, 'Direktur');
+(5, 'Staff');
 
 -- --------------------------------------------------------
 
@@ -121,7 +116,6 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `divisi` enum('IT','HR','Finance','Marketing','Operasional') NOT NULL,
-  `jabatan` enum('Staff','Supervisor','Manager','Direktur') NOT NULL,
   `status` enum('Aktif','Nonaktif') DEFAULT 'Aktif',
   `tipe_users_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -130,17 +124,17 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `nama`, `email`, `password`, `divisi`, `jabatan`, `status`, `tipe_users_id`) VALUES
-(1, 'Andi', 'andi@mail.com', '123456', 'IT', 'Manager', 'Aktif', 1),
-(2, 'Budi', 'budi@mail.com', '123456', 'HR', 'Supervisor', 'Aktif', 2),
-(3, 'Citra', 'citra@mail.com', '123456', 'Finance', 'Staff', 'Aktif', 3),
-(4, 'Doni', 'doni@mail.com', '123456', 'Marketing', 'Staff', 'Aktif', 4),
-(5, 'Eka', 'eka@mail.com', '123456', 'Operasional', 'Manager', 'Aktif', 5),
-(6, 'Fajar', 'fajar@mail.com', '123456', 'IT', 'Staff', 'Aktif', 6),
-(7, 'Gilang', 'gilang@mail.com', '123456', 'HR', 'Supervisor', 'Aktif', 7),
-(8, 'Hana', 'hana@mail.com', '123456', 'Finance', 'Manager', 'Aktif', 8),
-(9, 'Indra', 'indra@mail.com', '123456', 'Marketing', 'Staff', 'Nonaktif', 9),
-(10, 'Joko', 'joko@mail.com', '123456', 'Operasional', 'Direktur', 'Aktif', 10);
+INSERT INTO `users` (`id`, `nama`, `email`, `password`, `divisi`, `status`, `tipe_users_id`) VALUES
+(1, 'Andi', 'andi@mail.com', '123456', 'IT', 'Aktif', 1),    -- Admin
+(2, 'Budi', 'budi@mail.com', '123456', 'HR', 'Aktif', 2),    -- Direktur
+(3, 'Citra', 'citra@mail.com', '123456', 'Finance', 'Aktif', 3), -- Manager
+(4, 'Doni', 'doni@mail.com', '123456', 'Marketing', 'Aktif', 4), -- Supervisor
+(5, 'Eka', 'eka@mail.com', '123456', 'Operasional', 'Aktif', 5), -- Staff
+(6, 'Fajar', 'fajar@mail.com', '123456', 'IT', 'Aktif', 5),      -- Staff
+(7, 'Gilang', 'gilang@mail.com', '123456', 'HR', 'Aktif', 4),    -- Supervisor
+(8, 'Hana', 'hana@mail.com', '123456', 'Finance', 'Aktif', 3),   -- Manager
+(9, 'Indra', 'indra@mail.com', '123456', 'Marketing', 'Nonaktif', 5), -- Staff
+(10, 'Joko', 'joko@mail.com', '123456', 'Operasional', 'Aktif', 5); -- Staff
 
 -- --------------------------------------------------------
 

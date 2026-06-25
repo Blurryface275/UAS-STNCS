@@ -63,5 +63,28 @@ class User {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total_row'];
     }
+
+    public function getAllUsers() {
+        $query = "SELECT u.id, u.nama, t.nama AS role_name FROM " . $this->table_name . " u "
+            . "LEFT JOIN tipe_users t ON u.tipe_users_id = t.id "
+            . "ORDER BY u.nama ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    public function getSubordinates($powerLevel) {
+        // power_level is inversely correlated with id: Admin(id:1)=5, Direktur(2)=4, Manager(3)=3, Supervisor(4)=2, Staff(5)=1.
+        // Formula: 6 - id = power_level
+        $query = "SELECT u.id, u.nama, t.nama AS role_name FROM " . $this->table_name . " u "
+            . "LEFT JOIN tipe_users t ON u.tipe_users_id = t.id "
+            . "WHERE (6 - u.tipe_users_id) < :power_level "
+            . "ORDER BY (6 - u.tipe_users_id) DESC, u.nama ASC";
+            
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':power_level', $powerLevel, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt;
+    }
 }
 ?>

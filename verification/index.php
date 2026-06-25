@@ -2,7 +2,7 @@
 require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/Verification.php';
-requireRole(['Admin', 'Manager', 'Supervisor']);
+requireRole(['Admin', 'Direktur', 'Manager', 'Supervisor']);
 
 $database = new Database();
 $db = $database->getConnection();
@@ -10,6 +10,7 @@ $db = $database->getConnection();
 $verification = new Verification($db);
 
 $message = '';
+$userPowerLevel = $_SESSION['power_level'] ?? 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['verification_id'] ?? null;
@@ -31,8 +32,9 @@ $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $records_per_page = 5;
 $from_record_num = ($records_per_page * $page) - $records_per_page;
 
-$stmt = $verification->readPaging($from_record_num, $records_per_page);
-$total_rows = $verification->count();
+$filterPowerLevel = ($userPowerLevel < 5) ? $userPowerLevel : null;
+$stmt = $verification->readPaging($from_record_num, $records_per_page, $filterPowerLevel);
+$total_rows = $verification->count($filterPowerLevel);
 $total_pages = ceil($total_rows / $records_per_page);
 ?>
 <!DOCTYPE html>
@@ -55,10 +57,14 @@ $total_pages = ceil($total_rows / $records_per_page);
         </div>
         <ul class="nav-links">
             <li><a href="../index.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-            <li><a href="../users/index.php"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Admin'): ?>
+                <li><a href="../users/index.php"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php endif; ?>
             <li><a href="../kehadiran/index.php"><i class="fa-solid fa-clock-rotate-left"></i> Kehadiran</a></li>
             <li><a href="../tasks/index.php"><i class="fa-solid fa-list-check"></i> Tasks / Aktivitas</a></li>
-            <li><a href="index.php" class="active"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php if (isset($_SESSION['power_level']) && $_SESSION['power_level'] > 1): ?>
+                <li><a href="index.php" class="active"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php endif; ?>
             <li style="margin-top: auto; padding-top: 20px;"><a href="../logout.php" style="color: #ef4444;"><i
                         class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
         </ul>
