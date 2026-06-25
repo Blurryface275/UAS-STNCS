@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ? 'Task berhasil ditugaskan.'
                 : 'Task gagal ditambahkan.';
         }
-    } elseif (isset($_POST['submit_verification']) && $userPowerLevel === 1) {
+    } elseif (isset($_POST['submit_verification']) && $userPowerLevel < 5) {
         $task_id = $_POST['task_id'] ?? null;
         if ($task_id) {
             $checkOwner = $db->prepare("SELECT users_id FROM tasks WHERE id = ?");
@@ -202,7 +202,7 @@ if ($userPowerLevel === 5) {
                                         <span class="status-badge" style="background:#e5e7eb; color:#374151;">
                                             <?php echo htmlspecialchars($row['verification_status']); ?>
                                         </span>
-                                    <?php elseif ($userPowerLevel === 1): ?>
+                                    <?php elseif ($userPowerLevel < 5 && $row['users_id'] == $currentUserId): ?>
                                         <form method="POST" style="margin:0;">
                                             <input type="hidden" name="submit_verification" value="1">
                                             <input type="hidden" name="task_id" value="<?php echo htmlspecialchars($row['id']); ?>">
