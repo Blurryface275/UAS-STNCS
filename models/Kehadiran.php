@@ -24,20 +24,42 @@ class Kehadiran {
         return $stmt;
     }
 
-    public function readPaging($from_record_num, $records_per_page) {
+    public function readPaging($from_record_num, $records_per_page, $powerLevel = null, $currentUserId = null) {
         $query = "SELECT k.*, u.nama AS user_name FROM " . $this->table_name . " k "
-            . "LEFT JOIN users u ON k.users_id = u.id "
-            . "ORDER BY k.id DESC LIMIT ?, ?";
+            . "LEFT JOIN users u ON k.users_id = u.id ";
+            
+        if ($powerLevel !== null && $currentUserId !== null) {
+            $query .= "WHERE k.users_id = :current_user OR (6 - u.tipe_users_id) < :powerLevel ";
+        }
+            
+        $query .= "ORDER BY k.id DESC LIMIT :from, :limit";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
-        $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);
+        
+        if ($powerLevel !== null && $currentUserId !== null) {
+            $stmt->bindParam(':current_user', $currentUserId, PDO::PARAM_INT);
+            $stmt->bindParam(':powerLevel', $powerLevel, PDO::PARAM_INT);
+        }
+        
+        $stmt->bindParam(':from', $from_record_num, PDO::PARAM_INT);
+        $stmt->bindParam(':limit', $records_per_page, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt;
     }
 
-    public function count() {
-        $query = "SELECT COUNT(*) as total_row FROM " . $this->table_name;
+    public function count($powerLevel = null, $currentUserId = null) {
+        $query = "SELECT COUNT(*) as total_row FROM " . $this->table_name . " k LEFT JOIN users u ON k.users_id = u.id";
+        
+        if ($powerLevel !== null && $currentUserId !== null) {
+            $query .= " WHERE k.users_id = :current_user OR (6 - u.tipe_users_id) < :powerLevel";
+        }
+        
         $stmt = $this->conn->prepare($query);
+        
+        if ($powerLevel !== null && $currentUserId !== null) {
+            $stmt->bindParam(':current_user', $currentUserId, PDO::PARAM_INT);
+            $stmt->bindParam(':powerLevel', $powerLevel, PDO::PARAM_INT);
+        }
+        
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total_row'];

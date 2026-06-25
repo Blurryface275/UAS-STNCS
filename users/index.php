@@ -35,10 +35,14 @@ $total_pages = ceil($total_rows / $records_per_page);
         </div>
         <ul class="nav-links">
             <li><a href="../index.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-            <li><a href="index.php" class="active"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Admin'): ?>
+                <li><a href="index.php" class="active"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php endif; ?>
             <li><a href="../kehadiran/index.php"><i class="fa-solid fa-clock-rotate-left"></i> Kehadiran</a></li>
             <li><a href="../tasks/index.php"><i class="fa-solid fa-list-check"></i> Tasks / Aktivitas</a></li>
-            <li><a href="../verification/index.php"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php if (isset($_SESSION['power_level']) && $_SESSION['power_level'] > 1): ?>
+                <li><a href="../verification/index.php"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php endif; ?>
             <li style="margin-top: auto; padding-top: 20px;"><a href="../logout.php" style="color: #ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
         </ul>
     </aside>

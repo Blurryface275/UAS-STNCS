@@ -2,7 +2,7 @@
 require_once '../auth.php';
 require_once '../Database.php';
 require_once '../models/Kehadiran.php';
-requireRole(['Admin', 'Karyawan']);
+requireRole(['Admin', 'Direktur', 'Manager', 'Supervisor', 'Staff']);
 
 $database = new Database();
 $db = $database->getConnection();
@@ -27,12 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $todayAttendance = $kehadiran->getTodayAttendance($_SESSION['user_id']);
+$userPowerLevel = $_SESSION['power_level'] ?? 1;
+$currentUserId = $_SESSION['user_id'];
+
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $records_per_page = 5;
 $from_record_num = ($records_per_page * $page) - $records_per_page;
 
-$stmt = $kehadiran->readPaging($from_record_num, $records_per_page);
-$total_rows = $kehadiran->count();
+$filterPowerLevel = ($userPowerLevel < 5) ? $userPowerLevel : null;
+$filterUserId = ($userPowerLevel < 5) ? $currentUserId : null;
+
+$stmt = $kehadiran->readPaging($from_record_num, $records_per_page, $filterPowerLevel, $filterUserId);
+$total_rows = $kehadiran->count($filterPowerLevel, $filterUserId);
 $total_pages = ceil($total_rows / $records_per_page);
 ?>
 <!DOCTYPE html>
@@ -55,10 +61,14 @@ $total_pages = ceil($total_rows / $records_per_page);
         </div>
         <ul class="nav-links">
             <li><a href="../index.php"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-            <li><a href="../users/index.php"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'Admin'): ?>
+                <li><a href="../users/index.php"><i class="fa-solid fa-users"></i> Data Karyawan</a></li>
+            <?php endif; ?>
             <li><a href="index.php" class="active"><i class="fa-solid fa-clock-rotate-left"></i> Kehadiran</a></li>
             <li><a href="../tasks/index.php"><i class="fa-solid fa-list-check"></i> Tasks / Aktivitas</a></li>
-            <li><a href="../verification/index.php"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php if (isset($_SESSION['power_level']) && $_SESSION['power_level'] > 1): ?>
+                <li><a href="../verification/index.php"><i class="fa-solid fa-clipboard-check"></i> Verifikasi</a></li>
+            <?php endif; ?>
             <li style="margin-top: auto; padding-top: 20px;"><a href="../logout.php" style="color: #ef4444;"><i
                         class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
         </ul>
@@ -82,24 +92,97 @@ $total_pages = ceil($total_rows / $records_per_page);
             </div>
         <?php endif; ?>
 
-        <?php if ($_SESSION['user_role'] === 'Karyawan'): ?>
-            <form method="POST" style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05);">
+            <h3 style="margin-bottom: 15px; color: var(--text-dark);">Pencatatan Kehadiran Anda</h3>
+            <form method="POST" style="display: flex; gap: 10px;">
                 <?php if (!$todayAttendance): ?>
                     <button type="submit" name="clock_in"
-                        style="padding: 10px 16px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        <i class="fa-solid fa-right-to-bracket"></i> Clock In
+                        style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                        <i class="fa-solid fa-right-to-bracket"></i> Clock In Sekarang
                     </button>
                 <?php elseif (empty($todayAttendance['clock_out'])): ?>
-                    <button type="submit" name="clock_out"
-                        style="padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        <i class="fa-solid fa-right-from-bracket"></i> Clock Out
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="padding: 10px 16px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-weight: 500;">
+                            Waktu Masuk: <?php echo date('H:i', strtotime($todayAttendance['clock_in'])); ?>
+                        </div>
+                        <button type="submit" name="clock_out"
+                            style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Clock Out Selesai Kerja
+                        </button>
+                    </div>
                 <?php else: ?>
-                    <div style="padding: 10px 16px; background: #e5e7eb; border-radius: 8px;">
-                        Kehadiran hari ini sudah lengkap.
+                    <div style="padding: 12px 20px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 500;">
+                        <i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Kehadiran hari ini sudah lengkap (Masuk: <?php echo date('H:i', strtotime($todayAttendance['clock_in'])); ?>, Pulang: <?php echo date('H:i', strtotime($todayAttendance['clock_out'])); ?>). Selamat beristirahat!
                     </div>
                 <?php endif; ?>
             </form>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NAMA</th>
+                        <th>TANGGAL</th>
+                        <th>CLOCK IN</th>
+                        <th>CLOCK OUT</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
+                        <tr>
+                            <td style="font-weight: 500; color: var(--text-dark);">
+                                <?php echo htmlspecialchars($row['user_name'] ?? ''); ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($row['tanggal'] ?? ''); ?></td>
+                            <td>
+                                <?php if (!empty($row['clock_in'])): ?>
+                                    <span style="color: #166534;"><i class="fa-solid fa-clock"></i> <?php echo date('H:i', strtotime($row['clock_in'])); ?></span>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($row['clock_out'])): ?>
+                                    <span style="color: #991b1b;"><i class="fa-solid fa-clock"></i> <?php echo date('H:i', strtotime($row['clock_out'])); ?></span>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($row['clock_in']) && !empty($row['clock_out'])): ?>
+                                    <span class="status-badge" style="background: #dcfce7; color: #166534;">Selesai</span>
+                                <?php else: ?>
+                                    <span class="status-badge" style="background: #fef08a; color: #854d0e;">Bekerja</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                    <?php if ($stmt->rowCount() === 0): ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Belum ada data kehadiran divisi Anda.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <?php if ($total_pages > 1): ?>
+            <div class="pagination">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?php echo $page - 1; ?>" class="page-link"><i class="fa-solid fa-chevron-left"></i>
+                        Prev</a>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <a href="?page=<?php echo $i; ?>" class="page-link <?php echo $i == $page ? 'active' : ''; ?>"><?php echo $i; ?></a>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <a href="?page=<?php echo $page + 1; ?>" class="page-link">Next <i class="fa-solid fa-chevron-right"></i></a>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
     </main>
