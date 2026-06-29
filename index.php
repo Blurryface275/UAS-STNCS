@@ -45,7 +45,7 @@ $recentUsersStmt->execute();
 $recentTasksQuery = "SELECT t.aktivitas, t.tanggal, v.status as verification_status 
                      FROM tasks t 
                      LEFT JOIN verifications v ON t.id = v.tasks_idtasks 
-                     WHERE t.users_id = :user_id 
+                     WHERE t.assignee_id = :user_id 
                      ORDER BY t.id DESC LIMIT 5";
 $recentTasksStmt = $db->prepare($recentTasksQuery);
 $recentTasksStmt->bindParam(':user_id', $currentUserId, PDO::PARAM_INT);
@@ -172,7 +172,7 @@ $recentTasksStmt->execute();
                                             <?php if ($row['status'] == 'Aktif') : ?>
                                                 <span class="status-badge status-aktif">Aktif</span>
                                             <?php else : ?>
-                                                <span class="status-badge status-nonaktif">Nonaktif</span>
+                                                 <span class="status-badge status-nonaktif">Nonaktif</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>

@@ -28,7 +28,9 @@ class User {
     }
 
     public function readPaging($from_record_num, $records_per_page) {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY id DESC LIMIT ?, ?";
+        $query = "SELECT u.*, t.nama AS role_name FROM " . $this->table_name . " u "
+            . "LEFT JOIN tipe_users t ON u.tipe_users_id = t.id "
+            . "ORDER BY u.id DESC LIMIT ?, ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
         $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);
@@ -85,6 +87,81 @@ class User {
         $stmt->bindParam(':power_level', $powerLevel, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt;
+    }
+
+    public function create() {
+        $query = "INSERT INTO " . $this->table_name . " (nama, email, password, divisi, status, tipe_users_id) VALUES (:nama, :email, :password, :divisi, :status, :tipe_users_id)";
+        $stmt = $this->conn->prepare($query);
+        
+        $this->nama = htmlspecialchars(strip_tags($this->nama));
+        $this->email = htmlspecialchars(strip_tags($this->email));
+        $this->password = password_hash($this->password, PASSWORD_DEFAULT);
+        $this->divisi = htmlspecialchars(strip_tags($this->divisi));
+        $this->status = htmlspecialchars(strip_tags($this->status));
+        $this->tipe_users_id = htmlspecialchars(strip_tags($this->tipe_users_id));
+
+        $stmt->bindParam(':nama', $this->nama);
+        $stmt->bindParam(':email', $this->email);
+        $stmt->bindParam(':password', $this->password);
+        $stmt->bindParam(':divisi', $this->divisi);
+        $stmt->bindParam(':status', $this->status);
+        $stmt->bindParam(':tipe_users_id', $this->tipe_users_id);
+
+        return $stmt->execute();
+    }
+
+    public function update() {
+        $query = "UPDATE " . $this->table_name . " SET nama = :nama, email = :email, divisi = :divisi, status = :status, tipe_users_id = :tipe_users_id" . 
+                 (!empty($this->password) ? ", password = :password" : "") . 
+                 " WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        
+        $this->nama = htmlspecialchars(strip_tags($this->nama));
+        $this->email = htmlspecialchars(strip_tags($this->email));
+        $this->divisi = htmlspecialchars(strip_tags($this->divisi));
+        $this->status = htmlspecialchars(strip_tags($this->status));
+        $this->tipe_users_id = htmlspecialchars(strip_tags($this->tipe_users_id));
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(':nama', $this->nama);
+        $stmt->bindParam(':email', $this->email);
+        $stmt->bindParam(':divisi', $this->divisi);
+        $stmt->bindParam(':status', $this->status);
+        $stmt->bindParam(':tipe_users_id', $this->tipe_users_id);
+        $stmt->bindParam(':id', $this->id);
+
+        if(!empty($this->password)) {
+            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
+            $stmt->bindParam(':password', $this->password);
+        }
+
+        return $stmt->execute();
+    }
+
+    public function delete() {
+        $query = "UPDATE " . $this->table_name . " SET status = 'Nonaktif' WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(1, $this->id);
+        return $stmt->execute();
+    }
+    
+    public function readOne() {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? LIMIT 0,1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $this->id);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if($row) {
+            $this->nama = $row['nama'];
+            $this->email = $row['email'];
+            $this->divisi = $row['divisi'];
+            $this->status = $row['status'];
+            $this->tipe_users_id = $row['tipe_users_id'];
+            return true;
+        }
+        return false;
     }
 }
 ?>

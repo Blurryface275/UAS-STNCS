@@ -18,7 +18,7 @@ class Verification
                     t.aktivitas,
                     t.deskripsi,
                     t.tanggal,
-                    t.durasi_jam
+                    t.deadline
                   FROM " . $this->table_name . " v
                   LEFT JOIN users u ON v.users_id = u.id
                   LEFT JOIN tasks t ON v.tasks_idtasks = t.id
@@ -37,7 +37,7 @@ class Verification
                     t.aktivitas,
                     t.deskripsi,
                     t.tanggal,
-                    t.durasi_jam
+                    t.deadline
                   FROM " . $this->table_name . " v
                   LEFT JOIN users u ON v.users_id = u.id
                   LEFT JOIN tasks t ON v.tasks_idtasks = t.id";

@@ -20,27 +20,27 @@ $currentUserId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['submit_task']) && $userPowerLevel > 1) {
-        $assigned_user_id = $_POST['users_id'] ?? $currentUserId;
+        $assigned_user_id = $_POST['assignee_id'] ?? $currentUserId;
         $tanggal = $_POST['tanggal'] ?? date('Y-m-d');
         $aktivitas = trim($_POST['aktivitas'] ?? '');
         $deskripsi = trim($_POST['deskripsi'] ?? '');
-        $durasi_jam = $_POST['durasi_jam'] ?? 0;
+        $deadline = $_POST['deadline'] ?? '';
 
-        if ($aktivitas === '' || $deskripsi === '' || $durasi_jam <= 0) {
+        if ($aktivitas === '' || $deskripsi === '' || $deadline === '') {
             $message = 'Data task belum lengkap.';
         } else {
-            $message = $task->create($assigned_user_id, $tanggal, $aktivitas, $deskripsi, $durasi_jam)
+            $message = $task->create($currentUserId, $assigned_user_id, $tanggal, $aktivitas, $deskripsi, $deadline)
                 ? 'Task berhasil ditugaskan.'
                 : 'Task gagal ditambahkan.';
         }
     } elseif (isset($_POST['submit_verification']) && $userPowerLevel < 5) {
         $task_id = $_POST['task_id'] ?? null;
         if ($task_id) {
-            $checkOwner = $db->prepare("SELECT users_id FROM tasks WHERE id = ?");
+            $checkOwner = $db->prepare("SELECT assignee_id FROM tasks WHERE id = ?");
             $checkOwner->execute([$task_id]);
             $taskData = $checkOwner->fetch(PDO::FETCH_ASSOC);
             
-            if ($taskData && $taskData['users_id'] == $currentUserId) {
+            if ($taskData && $taskData['assignee_id'] == $currentUserId) {
                 $message = $verification->create($task_id, $currentUserId)
                     ? 'Verifikasi berhasil diajukan.'
                     : 'Verifikasi gagal diajukan.';
@@ -129,7 +129,7 @@ if ($userPowerLevel === 5) {
                         <input type="hidden" name="submit_task" value="1">
                         <div>
                             <label>Karyawan</label>
-                            <select name="users_id" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                            <select name="assignee_id" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
                                 <option value="">-- Pilih Karyawan --</option>
                                 <?php while ($u = $usersList->fetch(PDO::FETCH_ASSOC)): ?>
                                     <option value="<?php echo htmlspecialchars($u['id']); ?>">
@@ -158,8 +158,8 @@ if ($userPowerLevel === 5) {
                         </div>
 
                         <div>
-                            <label>Durasi Jam</label>
-                            <input type="number" step="0.5" min="0.5" name="durasi_jam" placeholder="Contoh: 3.5" required
+                            <label>Deadline Pekerjaan</label>
+                            <input type="datetime-local" name="deadline" required
                                 style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
                         </div>
 
@@ -175,19 +175,19 @@ if ($userPowerLevel === 5) {
                 <table>
                     <thead>
                         <tr>
-                            <th>ID USER</th>
-                            <th>NAMA USER</th>
-                            <th>TANGGAL</th>
+                            <th>ASSIGNEE ID</th>
+                            <th>NAMA ASSIGNEE</th>
+                            <th>TANGGAL MULAI</th>
                             <th>AKTIVITAS</th>
                             <th>DESKRIPSI</th>
-                            <th>DURASI (JAM)</th>
-                            <th>STATUS VERIFIKASI</th>
+                            <th>DEADLINE</th>
+                            <th>STATUS TUGAS & VERIFIKASI</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($row['users_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['assignee_id']); ?></td>
                                 <td><?php echo htmlspecialchars($row['user_name'] ?? '-'); ?></td>
                                 <td><?php echo htmlspecialchars($row['tanggal']); ?></td>
                                 <td>
@@ -196,13 +196,17 @@ if ($userPowerLevel === 5) {
                                     </span>
                                 </td>
                                 <td><?php echo htmlspecialchars($row['deskripsi']); ?></td>
-                                <td><?php echo htmlspecialchars($row['durasi_jam']); ?> Jam</td>
+                                <td style="color: #991b1b; font-weight: 500;"><i class="fa-solid fa-clock"></i> <?php echo date('d M Y H:i', strtotime($row['deadline'])); ?></td>
                                 <td>
-                                    <?php if ($row['verification_status']): ?>
+                                    <?php if ($row['status'] == 'Selesai'): ?>
+                                        <span class="status-badge" style="background:#dcfce7; color:#166534;">
+                                            Selesai (Diperiksa)
+                                        </span>
+                                    <?php elseif ($row['verification_status']): ?>
                                         <span class="status-badge" style="background:#e5e7eb; color:#374151;">
                                             <?php echo htmlspecialchars($row['verification_status']); ?>
                                         </span>
-                                    <?php elseif ($userPowerLevel < 5 && $row['users_id'] == $currentUserId): ?>
+                                    <?php elseif ($userPowerLevel < 5 && $row['assignee_id'] == $currentUserId): ?>
                                         <form method="POST" style="margin:0;">
                                             <input type="hidden" name="submit_verification" value="1">
                                             <input type="hidden" name="task_id" value="<?php echo htmlspecialchars($row['id']); ?>">

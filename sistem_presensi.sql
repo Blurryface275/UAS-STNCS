@@ -32,6 +32,7 @@ CREATE TABLE `kehadirans` (
   `tanggal` date DEFAULT NULL,
   `clock_in` datetime DEFAULT NULL,
   `clock_out` datetime DEFAULT NULL,
+  `status_kehadiran` enum('Hadir','Sakit','Izin','Cuti','Alpa') DEFAULT 'Hadir',
   `users_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -62,25 +63,32 @@ CREATE TABLE `tasks` (
   `tanggal` date NOT NULL,
   `aktivitas` varchar(255) DEFAULT NULL,
   `deskripsi` varchar(500) DEFAULT NULL,
-  `durasi_jam` decimal(4,2) DEFAULT NULL,
-  `users_id` int(11) DEFAULT NULL
+  `file_lampiran` varchar(255) DEFAULT NULL,
+  `file_hash` varchar(64) DEFAULT NULL COMMENT 'SHA-256 Hash dari file aslinya',
+  `latitude` decimal(10,8) DEFAULT NULL COMMENT 'Lokasi garis lintang (latitude) pengumpulan',
+  `longitude` decimal(11,8) DEFAULT NULL COMMENT 'Lokasi garis bujur (longitude) pengumpulan',
+  `submitted_at` datetime DEFAULT NULL COMMENT 'Tanggal & Jam saat tugas di-submit/dikumpulkan',
+  `deadline` datetime DEFAULT NULL,
+  `status` enum('Pending','Proses','Selesai') DEFAULT 'Pending',
+  `creator_id` int(11) DEFAULT NULL,
+  `assignee_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tasks`
 --
 
-INSERT INTO `tasks` (`id`, `tanggal`, `aktivitas`, `deskripsi`, `durasi_jam`, `users_id`) VALUES
-(1, '2026-06-01', 'Meeting', 'Meeting proyek', 2.50, 1),
-(2, '2026-06-02', 'Coding', 'Mengerjakan backend', 5.00, 2),
-(3, '2026-06-03', 'Testing', 'Pengujian sistem', 3.00, 3),
-(4, '2026-06-04', 'Deploy', 'Deploy aplikasi', 1.50, 4),
-(5, '2026-06-05', 'Desain', 'Desain UI', 4.00, 5),
-(6, '2026-06-06', 'Analisis', 'Analisis kebutuhan', 2.00, 6),
-(7, '2026-06-07', 'Dokumentasi', 'Buat dokumentasi', 3.50, 7),
-(8, '2026-06-08', 'Presentasi', 'Presentasi hasil', 2.25, 8),
-(9, '2026-06-09', 'Debugging', 'Perbaikan bug', 5.50, 9),
-(10, '2026-06-10', 'Review', 'Code review', 2.75, 10);
+INSERT INTO `tasks` (`id`, `tanggal`, `aktivitas`, `deskripsi`, `deadline`, `status`, `creator_id`, `assignee_id`) VALUES
+(1, '2026-06-01', 'Meeting', 'Meeting proyek', '2026-06-01 12:00:00', 'Selesai', 2, 1),
+(2, '2026-06-02', 'Coding', 'Mengerjakan backend', '2026-06-03 17:00:00', 'Proses', 4, 2),
+(3, '2026-06-03', 'Testing', 'Pengujian sistem', '2026-06-04 15:00:00', 'Pending', 4, 3),
+(4, '2026-06-04', 'Deploy', 'Deploy aplikasi', '2026-06-05 10:00:00', 'Selesai', 3, 4),
+(5, '2026-06-05', 'Desain', 'Desain UI', '2026-06-06 17:00:00', 'Proses', 3, 5),
+(6, '2026-06-06', 'Analisis', 'Analisis kebutuhan', '2026-06-07 14:00:00', 'Selesai', 3, 6),
+(7, '2026-06-07', 'Dokumentasi', 'Buat dokumentasi', '2026-06-08 12:00:00', 'Pending', 4, 7),
+(8, '2026-06-08', 'Presentasi', 'Presentasi hasil', '2026-06-09 09:00:00', 'Selesai', 3, 8),
+(9, '2026-06-09', 'Debugging', 'Perbaikan bug', '2026-06-10 17:00:00', 'Proses', 4, 9),
+(10, '2026-06-10', 'Review', 'Code review', '2026-06-11 15:00:00', 'Selesai', 2, 10);
 
 -- --------------------------------------------------------
 
@@ -183,7 +191,8 @@ ALTER TABLE `kehadirans`
 --
 ALTER TABLE `tasks`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `users_id` (`users_id`);
+  ADD KEY `creator_id` (`creator_id`),
+  ADD KEY `assignee_id` (`assignee_id`);
 
 --
 -- Indexes for table `tipe_users`
@@ -255,7 +264,8 @@ ALTER TABLE `kehadirans`
 -- Constraints for table `tasks`
 --
 ALTER TABLE `tasks`
-  ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`assignee_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `users`

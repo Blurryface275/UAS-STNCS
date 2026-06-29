@@ -55,19 +55,27 @@ $total_pages = ceil($total_rows / $records_per_page);
             </div>
         </header>
 
+        <?php if (isset($_GET['msg']) && $_GET['msg'] == 'created'): ?>
+            <div style="margin-bottom: 15px; padding: 12px; background: #dcfce7; color: #166534; border-radius: 8px;"><i class="fa-solid fa-check-circle"></i> Berhasil menambahkan karyawan baru.</div>
+        <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'updated'): ?>
+            <div style="margin-bottom: 15px; padding: 12px; background: #dcfce7; color: #166534; border-radius: 8px;"><i class="fa-solid fa-check-circle"></i> Berhasil mengubah data karyawan.</div>
+        <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'deleted'): ?>
+            <div style="margin-bottom: 15px; padding: 12px; background: #fee2e2; color: #991b1b; border-radius: 8px;"><i class="fa-solid fa-check-circle"></i> Berhasil menghapus karyawan.</div>
+        <?php endif; ?>
+
         <div class="section-card">
             <div class="section-header">
                 <h2>Seluruh Karyawan</h2>
-                <button style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                    <i class="fa-solid fa-plus"></i> Tambah Divisi / Karyawan
-                </button>
+                <a href="create.php" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 0.9rem;">
+                    <i class="fa-solid fa-plus"></i> Tambah Karyawan
+                </a>
             </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>NAMA & EMAIL</th>
-                            <th>DIVISI</th>
+                            <th>JABATAN & DIVISI</th>
                             <th>STATUS</th>
                             <th>AKSI</th>
                         </tr>
@@ -79,7 +87,10 @@ $total_pages = ceil($total_rows / $records_per_page);
                                     <div style="font-weight: 500;"><?php echo htmlspecialchars($row['nama']); ?></div>
                                     <div style="font-size: 0.8rem; color: var(--text-muted);"><?php echo htmlspecialchars($row['email']); ?></div>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['divisi']); ?></td>
+                                <td>
+                                    <div style="font-weight: 500; font-size: 0.95rem;"><?php echo htmlspecialchars($row['role_name']); ?></div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);"><?php echo htmlspecialchars($row['divisi']); ?></div>
+                                </td>
                                 <td>
                                     <?php if ($row['status'] == 'Aktif') : ?>
                                         <span class="status-badge status-aktif">Aktif</span>
@@ -88,8 +99,8 @@ $total_pages = ceil($total_rows / $records_per_page);
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="#" style="color: var(--primary); margin-right: 10px;"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></a>
+                                    <a href="edit.php?id=<?php echo $row['id']; ?>" style="color: var(--primary); margin-right: 15px;"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="delete.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Menghapus / menonaktifkan pengguna ini. Lanjutkan?');" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></a>
                                 </td>
                             </tr>
                         <?php endwhile; ?>

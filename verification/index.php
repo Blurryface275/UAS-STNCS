@@ -93,7 +93,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                             <th>NAMA USER</th>
                             <th>TANGGAL</th>
                             <th>AKTIVITAS</th>
-                            <th>DURASI</th>
+                            <th>DEADLINE</th>
                             <th>CATATAN</th>
                             <th>STATUS</th>
                             <th>AKSI</th>
@@ -109,7 +109,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                                     <strong><?php echo htmlspecialchars($row['aktivitas'] ?? '-'); ?></strong><br>
                                     <small><?php echo htmlspecialchars($row['deskripsi'] ?? '-'); ?></small>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['durasi_jam'] ?? '-'); ?> Jam</td>
+                                <td><?php echo isset($row['deadline']) ? date('d M Y H:i', strtotime($row['deadline'])) : '-'; ?></td>
                                 <td><?php echo htmlspecialchars($row['catatan']); ?></td>
                                 <td>
                                     <?php if ($row['status'] == 'Disetujui'): ?>
