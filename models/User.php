@@ -7,7 +7,7 @@ class User {
     public $id;
     public $nama;
     public $email;
-    public $password;
+    public $password; 
     public $divisi;
     public $jabatan;
     public $status;
