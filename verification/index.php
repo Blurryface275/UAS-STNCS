@@ -94,6 +94,10 @@ $total_pages = ceil($total_rows / $records_per_page);
                             <th>TANGGAL</th>
                             <th>AKTIVITAS</th>
                             <th>DEADLINE</th>
+                            <th>FILE</th>
+                            <th>HASH FILE</th>
+                            <th>LOKASI</th>
+                            <th>SUBMITTED</th>
                             <th>CATATAN</th>
                             <th>STATUS</th>
                             <th>AKSI</th>
@@ -110,6 +114,58 @@ $total_pages = ceil($total_rows / $records_per_page);
                                     <small><?php echo htmlspecialchars($row['deskripsi'] ?? '-'); ?></small>
                                 </td>
                                 <td><?php echo isset($row['deadline']) ? date('d M Y H:i', strtotime($row['deadline'])) : '-'; ?></td>
+                                <td style="min-width:180px;">
+                                    <?php if (!empty($row['file_lampiran'])): ?>
+                                        <div style="display:flex; flex-direction:column; gap:6px;">
+                                            <a href="../<?php echo htmlspecialchars($row['file_lampiran']); ?>"
+                                                target="_blank"
+                                                style="color:#2563eb; text-decoration:none;">
+                                                <i class="fa-solid fa-eye"></i> Preview File
+                                            </a>
+                                            <a href="../<?php echo htmlspecialchars($row['file_lampiran']); ?>"
+                                                download
+                                                style="color:#16a34a; text-decoration:none;">
+                                                <i class="fa-solid fa-download"></i> Download File
+                                            </a>
+                                            <small style="color:#64748b; word-break:break-all;">
+                                                <?php echo htmlspecialchars($row['file_lampiran']); ?>
+                                            </small>
+                                        </div>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                                <td style="min-width:260px;">
+                                    <?php if (!empty($row['file_hash'])): ?>
+                                        <div style="font-size:12px; color:#334155;">
+                                            <strong>SHA-256</strong>
+                                            <code style="display:block; margin-top:6px; padding:8px; background:#f8fafc; border-radius:6px; white-space:normal; word-break:break-all;">
+                                                <?php echo htmlspecialchars($row['file_hash']); ?>
+                                            </code>
+                                        </div>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                                <td style="min-width:140px;">
+                                    <?php
+                                    if (!empty($row['latitude']) && !empty($row['longitude'])) {
+                                        echo '<strong>Lat</strong>: ' . htmlspecialchars($row['latitude']) . '<br>' . '<strong>Lng</strong>: ' . htmlspecialchars($row['longitude']);
+                                    } else {
+                                        echo '-';
+                                    }
+                                    ?>
+                                </td>
+                                <td style="min-width:140px;">
+                                    <?php if (!empty($row['submitted_at'])): ?>
+                                        <div style="font-size:12px; color:#334155;">
+                                            <strong>Submitted</strong><br>
+                                            <?php echo date('d M Y H:i', strtotime($row['submitted_at'])); ?>
+                                        </div>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($row['catatan']); ?></td>
                                 <td>
                                     <?php if ($row['status'] == 'Disetujui'): ?>
