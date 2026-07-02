@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 11, 2026 at 11:32 AM
+-- Generation Time: Jul 02, 2026 at 07:57 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -32,6 +32,10 @@ CREATE TABLE `kehadirans` (
   `tanggal` date DEFAULT NULL,
   `clock_in` datetime DEFAULT NULL,
   `clock_out` datetime DEFAULT NULL,
+  `latitude_in` float DEFAULT NULL,
+  `longitude_in` float DEFAULT NULL,
+  `latitude_out` float DEFAULT NULL,
+  `longitude_out` float DEFAULT NULL,
   `status_kehadiran` enum('Hadir','Sakit','Izin','Cuti','Alpa') DEFAULT 'Hadir',
   `users_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -40,17 +44,20 @@ CREATE TABLE `kehadirans` (
 -- Dumping data for table `kehadirans`
 --
 
-INSERT INTO `kehadirans` (`id`, `tanggal`, `clock_in`, `clock_out`, `users_id`) VALUES
-(1, '2026-06-01', '2026-06-01 08:00:00', '2026-06-01 17:00:00', 1),
-(2, '2026-06-02', '2026-06-02 08:05:00', '2026-06-02 17:10:00', 2),
-(3, '2026-06-03', '2026-06-03 07:58:00', '2026-06-03 17:00:00', 3),
-(4, '2026-06-04', '2026-06-04 08:15:00', '2026-06-04 17:20:00', 4),
-(5, '2026-06-05', '2026-06-05 08:00:00', '2026-06-05 16:55:00', 5),
-(6, '2026-06-06', '2026-06-06 08:10:00', '2026-06-06 17:30:00', 6),
-(7, '2026-06-07', '2026-06-07 08:00:00', '2026-06-07 17:00:00', 7),
-(8, '2026-06-08', '2026-06-08 08:20:00', '2026-06-08 17:15:00', 8),
-(9, '2026-06-09', '2026-06-09 08:00:00', '2026-06-09 17:00:00', 9),
-(10, '2026-06-10', '2026-06-10 08:30:00', '2026-06-10 17:40:00', 10);
+INSERT INTO `kehadirans` (`id`, `tanggal`, `clock_in`, `clock_out`, `latitude_in`, `longitude_in`, `latitude_out`, `longitude_out`, `status_kehadiran`, `users_id`) VALUES
+(1, '2026-06-01', '2026-06-01 08:00:00', '2026-06-01 17:00:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 1),
+(2, '2026-06-02', '2026-06-02 08:05:00', '2026-06-02 17:10:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 2),
+(3, '2026-06-03', '2026-06-03 07:58:00', '2026-06-03 17:00:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 3),
+(4, '2026-06-04', '2026-06-04 08:15:00', '2026-06-04 17:20:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 4),
+(5, '2026-06-05', '2026-06-05 08:00:00', '2026-06-05 16:55:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 5),
+(6, '2026-06-06', '2026-06-06 08:10:00', '2026-06-06 17:30:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 6),
+(7, '2026-06-07', '2026-06-07 08:00:00', '2026-06-07 17:00:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 7),
+(8, '2026-06-08', '2026-06-08 08:20:00', '2026-06-08 17:15:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 8),
+(9, '2026-06-09', '2026-06-09 08:00:00', '2026-06-09 17:00:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 9),
+(10, '2026-06-10', '2026-06-10 08:30:00', '2026-06-10 17:40:00', -7.3219, 112.769, -7.3219, 112.769, 'Hadir', 10),
+(39, '2026-07-02', '2026-07-02 09:26:02', '2026-07-02 09:26:03', -7.30984, 112.715, -7.30984, 112.715, 'Hadir', 11),
+(40, '2026-07-02', '2026-07-02 09:27:58', '2026-07-02 09:28:03', -7.30984, 112.715, -7.30984, 112.715, 'Hadir', 12),
+(41, '2026-07-02', '2026-07-02 09:28:21', '2026-07-02 09:28:22', -7.30984, 112.715, -7.30984, 112.715, 'Hadir', 13);
 
 -- --------------------------------------------------------
 
@@ -78,17 +85,17 @@ CREATE TABLE `tasks` (
 -- Dumping data for table `tasks`
 --
 
-INSERT INTO `tasks` (`id`, `tanggal`, `aktivitas`, `deskripsi`, `deadline`, `status`, `creator_id`, `assignee_id`) VALUES
-(1, '2026-06-01', 'Meeting', 'Meeting proyek', '2026-06-01 12:00:00', 'Selesai', 2, 1),
-(2, '2026-06-02', 'Coding', 'Mengerjakan backend', '2026-06-03 17:00:00', 'Proses', 4, 2),
-(3, '2026-06-03', 'Testing', 'Pengujian sistem', '2026-06-04 15:00:00', 'Pending', 4, 3),
-(4, '2026-06-04', 'Deploy', 'Deploy aplikasi', '2026-06-05 10:00:00', 'Selesai', 3, 4),
-(5, '2026-06-05', 'Desain', 'Desain UI', '2026-06-06 17:00:00', 'Proses', 3, 5),
-(6, '2026-06-06', 'Analisis', 'Analisis kebutuhan', '2026-06-07 14:00:00', 'Selesai', 3, 6),
-(7, '2026-06-07', 'Dokumentasi', 'Buat dokumentasi', '2026-06-08 12:00:00', 'Pending', 4, 7),
-(8, '2026-06-08', 'Presentasi', 'Presentasi hasil', '2026-06-09 09:00:00', 'Selesai', 3, 8),
-(9, '2026-06-09', 'Debugging', 'Perbaikan bug', '2026-06-10 17:00:00', 'Proses', 4, 9),
-(10, '2026-06-10', 'Review', 'Code review', '2026-06-11 15:00:00', 'Selesai', 2, 10);
+INSERT INTO `tasks` (`id`, `tanggal`, `aktivitas`, `deskripsi`, `file_lampiran`, `file_hash`, `latitude`, `longitude`, `submitted_at`, `deadline`, `status`, `creator_id`, `assignee_id`) VALUES
+(1, '2026-06-01', 'Meeting', 'Meeting proyek', NULL, NULL, NULL, NULL, NULL, '2026-06-01 12:00:00', 'Selesai', 2, 1),
+(2, '2026-06-02', 'Coding', 'Mengerjakan backend', NULL, NULL, NULL, NULL, NULL, '2026-06-03 17:00:00', 'Proses', 4, 2),
+(3, '2026-06-03', 'Testing', 'Pengujian sistem', NULL, NULL, NULL, NULL, NULL, '2026-06-04 15:00:00', 'Pending', 4, 3),
+(4, '2026-06-04', 'Deploy', 'Deploy aplikasi', NULL, NULL, NULL, NULL, NULL, '2026-06-05 10:00:00', 'Selesai', 3, 4),
+(5, '2026-06-05', 'Desain', 'Desain UI', NULL, NULL, NULL, NULL, NULL, '2026-06-06 17:00:00', 'Proses', 3, 5),
+(6, '2026-06-06', 'Analisis', 'Analisis kebutuhan', NULL, NULL, NULL, NULL, NULL, '2026-06-07 14:00:00', 'Selesai', 3, 6),
+(7, '2026-06-07', 'Dokumentasi', 'Buat dokumentasi', NULL, NULL, NULL, NULL, NULL, '2026-06-08 12:00:00', 'Pending', 4, 7),
+(8, '2026-06-08', 'Presentasi', 'Presentasi hasil', NULL, NULL, NULL, NULL, NULL, '2026-06-09 09:00:00', 'Selesai', 3, 8),
+(9, '2026-06-09', 'Debugging', 'Perbaikan bug', NULL, NULL, NULL, NULL, NULL, '2026-06-10 17:00:00', 'Proses', 4, 9),
+(10, '2026-06-10', 'Review', 'Code review', NULL, NULL, NULL, NULL, NULL, '2026-06-11 15:00:00', 'Selesai', 2, 10);
 
 -- --------------------------------------------------------
 
@@ -133,16 +140,19 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `email`, `password`, `divisi`, `status`, `tipe_users_id`) VALUES
-(1, 'Andi', 'andi@mail.com', '123456', 'IT', 'Aktif', 1),    -- Admin
-(2, 'Budi', 'budi@mail.com', '123456', 'HR', 'Aktif', 2),    -- Direktur
-(3, 'Citra', 'citra@mail.com', '123456', 'Finance', 'Aktif', 3), -- Manager
-(4, 'Doni', 'doni@mail.com', '123456', 'Marketing', 'Aktif', 4), -- Supervisor
-(5, 'Eka', 'eka@mail.com', '123456', 'Operasional', 'Aktif', 5), -- Staff
-(6, 'Fajar', 'fajar@mail.com', '123456', 'IT', 'Aktif', 5),      -- Staff
-(7, 'Gilang', 'gilang@mail.com', '123456', 'HR', 'Aktif', 4),    -- Supervisor
-(8, 'Hana', 'hana@mail.com', '123456', 'Finance', 'Aktif', 3),   -- Manager
-(9, 'Indra', 'indra@mail.com', '123456', 'Marketing', 'Nonaktif', 5), -- Staff
-(10, 'Joko', 'joko@mail.com', '123456', 'Operasional', 'Aktif', 5); -- Staff
+(1, 'Andi', 'andi@mail.com', '123456', 'IT', 'Aktif', 1),
+(2, 'Budi', 'budi@mail.com', '123456', 'HR', 'Aktif', 2),
+(3, 'Citra', 'citra@mail.com', '123456', 'Finance', 'Aktif', 3),
+(4, 'Doni', 'doni@mail.com', '123456', 'Marketing', 'Aktif', 4),
+(5, 'Eka', 'eka@mail.com', '123456', 'Operasional', 'Aktif', 4),
+(6, 'Fajar', 'fajar@mail.com', '123456', 'IT', 'Aktif', 5),
+(7, 'Gilang', 'gilang@mail.com', '123456', 'HR', 'Aktif', 4),
+(8, 'Hana', 'hana@mail.com', '123456', 'Finance', 'Aktif', 4),
+(9, 'Indra', 'indra@mail.com', '123456', 'Marketing', 'Nonaktif', 5),
+(10, 'Joko', 'joko@mail.com', '123456', 'Operasional', 'Aktif', 5),
+(11, 'Hamba', 'hamba@mail.com', '123456', 'Marketing', 'Aktif', 3),
+(12, 'Maria', 'maria@mail.com', '123456', 'HR', 'Aktif', 3),
+(13, 'Anton', 'anton@mail.com', '123456', 'HR', 'Aktif', 5);
 
 -- --------------------------------------------------------
 
@@ -224,7 +234,7 @@ ALTER TABLE `verifications`
 -- AUTO_INCREMENT for table `kehadirans`
 --
 ALTER TABLE `kehadirans`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `tasks`
@@ -242,7 +252,7 @@ ALTER TABLE `tipe_users`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `verifications`
@@ -272,13 +282,6 @@ ALTER TABLE `tasks`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`tipe_users_id`) REFERENCES `tipe_users` (`id`);
-
---
--- Constraints for table `verifications`
---
-ALTER TABLE `verifications`
-  ADD CONSTRAINT `verifications_ibfk_1` FOREIGN KEY (`tasks_idtasks`) REFERENCES `tasks` (`id`),
-  ADD CONSTRAINT `verifications_ibfk_2` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
