@@ -14,46 +14,47 @@ if (!$db) {
     die("Koneksi database gagal. Pastikan XAMPP nyala dan .env dikonfigurasi dengan benar.");
 }
 
-$user = new User($db);
-$kehadiran = new Kehadiran($db);
-$task = new Task($db);
+$user         = new User($db);
+$kehadiran    = new Kehadiran($db);
+$task         = new Task($db);
 $verification = new Verification($db);
 
 $userPowerLevel = $_SESSION['power_level'] ?? 1;
-$currentUserId = $_SESSION['user_id'] ?? null;
+$currentUserId  = $_SESSION['user_id'] ?? null;
+$division       = $_SESSION['user_division'];
+
 
 $filterPowerLevel = ($userPowerLevel < 5) ? $userPowerLevel : null;
-$filterUserId = ($userPowerLevel < 5) ? $currentUserId : null;
+$filterUserId     = ($userPowerLevel < 5) ? $currentUserId : null;
 
-$stmtUsers = $user->read();
-$totalUsers = $stmtUsers->rowCount();
-
+$stmtUsers     = $user->read();
 $stmtKehadiran = $kehadiran->read();
-$totalKehadiran = $stmtKehadiran->rowCount();
 
-$totalTask = $task->count($filterPowerLevel, $filterUserId);
+$totalUsers           = $user->countByTipeUser($_SESSION['user_division'], $_SESSION['user_role_id'], $_SESSION['user_id']);
+$totalKehadiran       = $kehadiran->countByTipeUser($division, $_SESSION['user_role_id']);
+$totalKehadiranByUser = $kehadiran->countTotal($currentUserId);
+$totalTask            = $task->count($filterPowerLevel, $filterUserId);
+$totalPending         = $verification->count($filterPowerLevel, 'Pending');
 
-$totalPending = $verification->count($filterPowerLevel, 'Pending');
-
-$recentUsersQuery = "SELECT u.nama, u.email, u.divisi, u.status, t.nama as tipe_user 
-                     FROM users u 
-                     LEFT JOIN tipe_users t ON u.tipe_users_id = t.id 
-                     ORDER BY u.id DESC LIMIT 5";
-$recentUsersStmt = $db->prepare($recentUsersQuery);
-$recentUsersStmt->execute();
+$recentUsers = $user->getRecentUsers(
+    $_SESSION['user_division'],
+    $_SESSION['user_role_id'],
+    $_SESSION['user_id']
+);
 
 $recentTasksQuery = "SELECT t.aktivitas, t.tanggal, v.status as verification_status 
                      FROM tasks t 
                      LEFT JOIN verifications v ON t.id = v.tasks_idtasks 
                      WHERE t.assignee_id = :user_id 
                      ORDER BY t.id DESC LIMIT 5";
-$recentTasksStmt = $db->prepare($recentTasksQuery);
+$recentTasksStmt  = $db->prepare($recentTasksQuery);
 $recentTasksStmt->bindParam(':user_id', $currentUserId, PDO::PARAM_INT);
 $recentTasksStmt->execute();
 
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,6 +64,7 @@ $recentTasksStmt->execute();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
 
     <aside class="sidebar">
@@ -101,20 +103,36 @@ $recentTasksStmt->execute();
         </header>
 
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <h3>Total Karyawan</h3>
-                    <div class="value"><?php echo $totalUsers; ?></div>
+            <?php if (
+                isset($_SESSION['user_role']) &&
+                ($_SESSION['user_role'] === 'Admin' ||
+                    $_SESSION['user_role'] === 'Manager' ||
+                    $_SESSION['user_role'] === 'Supervisor' ||
+                    $_SESSION['user_role'] === 'Direktur')
+            ): ?>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Total Karyawan</h3>
+                        <div class="value"><?php echo $totalUsers; ?></div>
+                    </div>
+                    <div class="stat-icon icon-blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
                 </div>
-                <div class="stat-icon icon-blue">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-            </div>
-            
+            <?php endif; ?>
+
             <div class="stat-card">
                 <div class="stat-info">
                     <h3>Total Kehadiran</h3>
-                    <div class="value"><?php echo $totalKehadiran; ?></div>
+                    <?php if (
+                        isset($_SESSION['user_role']) &&
+                        ($_SESSION['user_role'] === 'Staff')
+                    ): ?>
+                        <div class="value"><?php echo $totalKehadiranByUser; ?></div>
+                    <?php else: ?>
+                        <div class="value"><?php echo $totalKehadiran; ?></div>
+
+                    <?php endif; ?>
                 </div>
                 <div class="stat-icon icon-green">
                     <i class="fa-solid fa-user-check"></i>
@@ -160,7 +178,7 @@ $recentTasksStmt->execute();
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($row = $recentUsersStmt->fetch(PDO::FETCH_ASSOC)) : ?>
+                                <?php foreach ($recentUsers as $row) : ?>
                                     <tr>
                                         <td>
                                             <div style="font-weight: 500;"><?php echo htmlspecialchars($row['nama']); ?></div>
@@ -172,11 +190,11 @@ $recentTasksStmt->execute();
                                             <?php if ($row['status'] == 'Aktif') : ?>
                                                 <span class="status-badge status-aktif">Aktif</span>
                                             <?php else : ?>
-                                                 <span class="status-badge status-nonaktif">Nonaktif</span>
+                                                <span class="status-badge status-nonaktif">Nonaktif</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
@@ -226,4 +244,5 @@ $recentTasksStmt->execute();
     </main>
 
 </body>
+
 </html>

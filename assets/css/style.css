@@ -31,6 +31,218 @@ body {
   overflow-x: hidden;
 }
 
+.btn-clockin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 6px 14px rgba(34, 197, 94, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-clockin:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(34, 197, 94, 0.4);
+}
+
+.btn-clockin small {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.btn-clockout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-clockout:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-clockin i,
+.btn-clockout i,
+.btn-log-pribadi i,
+.btn-log-karyawan i {
+  margin-right: 8px;
+  vertical-align: middle;
+  font-size: 1.1em;
+}
+
+.card-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.card-absensi {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.card-absensi h3 {
+  margin-bottom: 15px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.card-absensi a {
+  margin-top: 15px;
+}
+
+.form-absensi {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.info-masuk {
+  padding: 10px 16px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.info-lengkap {
+  padding: 12px 20px;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.info-lengkap i {
+  color: #22c55e;
+  margin-right: 6px;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: space-between;
+  /* kiri, tengah, kanan */
+  align-items: center;
+  margin-top: 10px;
+}
+
+.btn-row a {
+  flex: 1;
+  /* biar ukurannya seimbang */
+  text-align: center;
+  /* teks rata tengah */
+  padding: 10px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0 5px;
+}
+
+.btn-row a i {
+  margin-right: 6px;
+  /* jarak antara ikon dan teks */
+  vertical-align: middle;
+  /* ikon sejajar dengan teks */
+  font-size: 1em;
+  /* ukuran proporsional */
+  line-height: 1;
+  /* hindari ikon terlalu tinggi */
+}
+
+.btn-row a {
+  display: inline-flex;
+  /* ikon + teks dalam satu baris */
+  align-items: center;
+  /* vertikal rata tengah */
+  justify-content: center;
+  /* teks + ikon rata tengah */
+}
+
+.btn-log-semua {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Tombol Log */
+.btn-log-pribadi,
+.btn-log-karyawan,
+.btn-log-semua {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  color: #fff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-log-semua {
+  background: linear-gradient(135deg, #6b7280, #374151);
+  /* abu-abu ke hitam */
+  box-shadow: 0 6px 14px rgba(107, 114, 128, 0.3);
+  color: #fff;
+  /* teks putih */
+}
+
+.btn-log-semua:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(107, 114, 128, 0.4);
+}
+
+.btn-log-pribadi {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.3);
+}
+
+.btn-log-pribadi:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-log-karyawan {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 6px 14px rgba(245, 158, 11, 0.3);
+}
+
+.btn-log-karyawan:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+}
+
 .sidebar {
   width: 260px;
   background-color: var(--sidebar-bg);
@@ -100,6 +312,21 @@ body {
   margin-left: 260px;
   padding: 32px 40px;
   transition: var(--transition);
+}
+
+.map-link {
+  font-weight: 600;
+  color: #0369a1;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #e0f2fe;
+  transition: all 0.3s ease;
+}
+
+.map-link:hover {
+  background: #0369a1;
+  color: #fff;
 }
 
 .top-header {
@@ -198,14 +425,17 @@ body {
   background: #eef2ff;
   color: var(--primary);
 }
+
 .icon-green {
   background: #ecfdf5;
   color: var(--secondary);
 }
+
 .icon-purple {
   background: #f5f3ff;
   color: #8b5cf6;
 }
+
 .icon-orange {
   background: #fff7ed;
   color: #f97316;
@@ -320,6 +550,87 @@ table {
   border-radius: 12px;
 }
 
+.table-responsive {
+  background: #fff;
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.table-title {
+  margin-bottom: 15px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  ;
+}
+
+.attendance-table th {
+  background: #f3f4f6;
+  color: #374151;
+  text-align: center;
+  padding: 12px;
+  font-weight: 600;
+}
+
+.attendance-table td {
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.name-cell {
+  font-weight: 500;
+  color: #111827;
+}
+
+.clock-in {
+  color: #166534;
+  font-weight: 500;
+}
+
+.clock-out {
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.map-link.in {
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.map-link.out {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.status-badge.selesai {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.bekerja {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.empty-data {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
 
 th,
 td {
@@ -351,6 +662,7 @@ td {
   background: #d1fae5;
   color: #065f46;
 }
+
 .status-nonaktif {
   background: #fee2e2;
   color: #991b1b;
@@ -366,6 +678,7 @@ td {
   .sidebar {
     transform: translateX(-100%);
   }
+
   .main-content {
     margin-left: 0;
     padding: 20px;
@@ -374,11 +687,13 @@ td {
 
 .pagination {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  /* ini kuncinya */
   align-items: center;
   gap: 8px;
   margin-top: 24px;
 }
+
 
 .page-link {
   display: inline-flex;
@@ -389,6 +704,7 @@ td {
   background: var(--surface);
   border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 8px;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.05);
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;

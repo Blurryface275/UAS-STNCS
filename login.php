@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $userData['nama'];
             $_SESSION['user_email'] = $userData['email'];
             $_SESSION['user_role_id'] = $userData['tipe_users_id'];
+            $_SESSION['user_division'] = $userData['divisi'];
             
             $role = current(explode(' ', trim($userData['role_name'] ?? 'Staff'))); // Safely get first word just in case
             

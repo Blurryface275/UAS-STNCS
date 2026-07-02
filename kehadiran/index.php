@@ -11,34 +11,56 @@ $kehadiran = new Kehadiran($db);
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userId = $_SESSION['user_id'];
+    $action        = $_POST['action'] ?? '';
+    $userId        = $_SESSION['user_id'];
+    $latitude_in   = $_POST['latitude_in'] ?? null;
+    $longitude_in  = $_POST['longitude_in'] ?? null;
+    $latitude_out  = $_POST['latitude_out'] ?? null;
+    $longitude_out = $_POST['longitude_out'] ?? null;
 
-    if (isset($_POST['clock_in'])) {
-        $message = $kehadiran->clockIn($userId)
+    if ($action === 'clock_in') {
+        $message = $kehadiran->clockIn($userId, $latitude_in, $longitude_in)
             ? 'Clock-in berhasil.'
             : 'Clock-in gagal. Kamu sudah clock-in hari ini.';
     }
 
-    if (isset($_POST['clock_out'])) {
-        $message = $kehadiran->clockOut($userId)
+    if ($action === 'clock_out') {
+        $message = $kehadiran->clockOut($userId, $latitude_out, $longitude_out)
             ? 'Clock-out berhasil.'
             : 'Clock-out gagal. Kamu belum clock-in atau sudah clock-out.';
     }
 }
 
 $todayAttendance = $kehadiran->getTodayAttendance($_SESSION['user_id']);
-$userPowerLevel = $_SESSION['power_level'] ?? 1;
-$currentUserId = $_SESSION['user_id'];
-
-$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-$records_per_page = 5;
-$from_record_num = ($records_per_page * $page) - $records_per_page;
+$userPowerLevel  = $_SESSION['power_level'] ?? 1;
+$currentUserId   = $_SESSION['user_id'];
+$division        = $_SESSION['user_division'];
+$userRole        = $_SESSION['user_role'];
 
 $filterPowerLevel = ($userPowerLevel < 5) ? $userPowerLevel : null;
-$filterUserId = ($userPowerLevel < 5) ? $currentUserId : null;
+$filterUserId     = ($userPowerLevel < 5) ? $currentUserId : null;
 
-$stmt = $kehadiran->readPaging($from_record_num, $records_per_page, $filterPowerLevel, $filterUserId);
-$total_rows = $kehadiran->count($filterPowerLevel, $filterUserId);
+$page             = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$records_per_page = 5;
+$from_record_num  = ($records_per_page * $page) - $records_per_page;
+$filter           = $_GET['filter'] ?? 'all';
+
+switch ($filter) {
+    case 'pribadi':
+        $stmt       = $kehadiran->getAttendanceByUserPaging($from_record_num, $records_per_page, $currentUserId);
+        $total_rows = $kehadiran->countByUser($currentUserId);
+        break;
+
+    case 'karyawan':
+        $stmt       = $kehadiran->readPagingByTipeUser($from_record_num, $records_per_page, $division, $_SESSION['user_role_id']);
+        $total_rows = $kehadiran->countByTipeUser($division, $_SESSION['user_role_id']);
+        break;
+
+    default: // semua
+        $stmt       = $kehadiran->readPagingAll($from_record_num, $records_per_page, $division, $_SESSION['user_role_id'], $currentUserId);
+        $total_rows = $kehadiran->countAll($division, $_SESSION['user_role_id'], $currentUserId);
+        break;
+}
 $total_pages = ceil($total_rows / $records_per_page);
 ?>
 <!DOCTYPE html>
@@ -92,76 +114,129 @@ $total_pages = ceil($total_rows / $records_per_page);
             </div>
         <?php endif; ?>
 
-        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05);">
-            <h3 style="margin-bottom: 15px; color: var(--text-dark);">Pencatatan Kehadiran Anda</h3>
-            <form method="POST" style="display: flex; gap: 10px;">
-                <?php if (!$todayAttendance): ?>
-                    <button type="submit" name="clock_in"
-                        style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
-                        <i class="fa-solid fa-right-to-bracket"></i> Clock In Sekarang
-                    </button>
-                <?php elseif (empty($todayAttendance['clock_out'])): ?>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="padding: 10px 16px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-weight: 500;">
+        <div class="card-container">
+            <div class="card-absensi">
+                <h3>Pencatatan Kehadiran Anda</h3>
+                <form id="attendanceForm" method="POST" class="form-absensi">
+                    <input type="hidden" name="action" id="action">
+                    <?php if (!$todayAttendance): ?>
+                        <button type="submit" id="btnClockIn" name="clock_in" class="btn-clockin">
+                            <span class="btn-main">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                Clock In Sekarang
+                            </span>
+                            <small>(Pastikan lokasi GPS aktif)</small>
+                        </button>
+                        <input type="hidden" name="latitude_in" id="latitude_in">
+                        <input type="hidden" name="longitude_in" id="longitude_in">
+                    <?php elseif (empty($todayAttendance['clock_out'])): ?>
+                        <div class="info-masuk">
                             Waktu Masuk: <?php echo date('H:i', strtotime($todayAttendance['clock_in'])); ?>
                         </div>
-                        <button type="submit" name="clock_out"
-                            style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
-                            <i class="fa-solid fa-right-from-bracket"></i> Clock Out Selesai Kerja
+                        <button type="submit" id="btnClockOut" name="clock_out" class="btn-clockout">
+                            <span class="btn-main">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Clock Out Selesai Kerja
+                            </span>
                         </button>
+                        <input type="hidden" name="latitude_out" id="latitude_out">
+                        <input type="hidden" name="longitude_out" id="longitude_out">
+                    <?php else: ?>
+                        <div class="info-lengkap">
+                            <i class="fa-solid fa-check-circle"></i> Kehadiran hari ini sudah lengkap
+                            (Masuk: <?php echo date('H:i', strtotime($todayAttendance['clock_in'])); ?>,
+                            Pulang: <?php echo date('H:i', strtotime($todayAttendance['clock_out'])); ?>).
+                            Selamat beristirahat!
+                        </div>
+                    <?php endif; ?>
+                </form>
+            </div>
+
+            <?php if ($_SESSION['user_role_id'] != 5): ?>
+                <div class="card-absensi">
+                    <h3>Log Kehadiran</h3>
+                    <div class="btn-row">
+                        <a href="index.php" class="btn-log-semua">
+                            <i class="fa-solid fa-users"></i> Semua
+                        </a>
+                        <a href="index.php?filter=pribadi" class="btn-log-pribadi">
+                            <i class="fa-solid fa-user-clock"></i> Pribadi
+                        </a>
+                        <a href="index.php?filter=karyawan" class="btn-log-karyawan">
+                            <i class="fa-solid fa-users"></i> Karyawan
+                        </a>
                     </div>
-                <?php else: ?>
-                    <div style="padding: 12px 20px; background: #f3f4f6; color: #4b5563; border-radius: 8px; font-weight: 500;">
-                        <i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Kehadiran hari ini sudah lengkap (Masuk: <?php echo date('H:i', strtotime($todayAttendance['clock_in'])); ?>, Pulang: <?php echo date('H:i', strtotime($todayAttendance['clock_out'])); ?>). Selamat beristirahat!
-                    </div>
-                <?php endif; ?>
-            </form>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="table-responsive">
-            <table>
+            <h3 class="table-title"></h3>
+            <table class="attendance-table">
                 <thead>
                     <tr>
                         <th>NAMA</th>
                         <th>TANGGAL</th>
                         <th>CLOCK IN</th>
+                        <th>Lokasi In</th>
                         <th>CLOCK OUT</th>
+                        <th>Lokasi Out</th>
                         <th>STATUS</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
-                            <td style="font-weight: 500; color: var(--text-dark);">
+                            <td class="name-cell">
                                 <?php echo htmlspecialchars($row['user_name'] ?? ''); ?>
                             </td>
                             <td><?php echo htmlspecialchars($row['tanggal'] ?? ''); ?></td>
                             <td>
                                 <?php if (!empty($row['clock_in'])): ?>
-                                    <span style="color: #166534;"><i class="fa-solid fa-clock"></i> <?php echo date('H:i', strtotime($row['clock_in'])); ?></span>
-                                <?php else: ?>
-                                    -
+                                    <span class="clock-in">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <?php echo date('H:i', strtotime($row['clock_in'])); ?>
+                                    </span>
+                                <?php else: ?> -
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($row['latitude_in']) && !empty($row['longitude_in'])): ?>
+                                    <a href="https://www.google.com/maps?q=<?php echo $row['latitude_in']; ?>,<?php echo $row['longitude_in']; ?>" target="_blank" class="map-link in">
+                                        Lihat di Maps
+                                    </a>
+                                <?php else: ?> -
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <?php if (!empty($row['clock_out'])): ?>
-                                    <span style="color: #991b1b;"><i class="fa-solid fa-clock"></i> <?php echo date('H:i', strtotime($row['clock_out'])); ?></span>
-                                <?php else: ?>
-                                    -
+                                    <span class="clock-out">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <?php echo date('H:i', strtotime($row['clock_out'])); ?>
+                                    </span>
+                                <?php else: ?> -
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($row['latitude_out']) && !empty($row['longitude_out'])): ?>
+                                    <a href="https://www.google.com/maps?q=<?php echo $row['latitude_out']; ?>,<?php echo $row['longitude_out']; ?>" target="_blank" class="map-link out">
+                                        Lihat di Maps
+                                    </a>
+                                <?php else: ?> -
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <?php if (!empty($row['clock_in']) && !empty($row['clock_out'])): ?>
-                                    <span class="status-badge" style="background: #dcfce7; color: #166534;">Selesai</span>
+                                    <span class="status-badge selesai">Selesai</span>
                                 <?php else: ?>
-                                    <span class="status-badge" style="background: #fef08a; color: #854d0e;">Bekerja</span>
+                                    <span class="status-badge bekerja">Bekerja</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
                     <?php endwhile; ?>
                     <?php if ($stmt->rowCount() === 0): ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Belum ada data kehadiran divisi Anda.</td>
+                            <td colspan="7" class="empty-data">Belum ada data kehadiran divisi Anda.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -184,8 +259,57 @@ $total_pages = ceil($total_rows / $records_per_page);
                 <?php endif; ?>
             </div>
         <?php endif; ?>
+        </div>
 
     </main>
 </body>
 
 </html>
+
+<script>
+    const form = document.getElementById("attendanceForm");
+    const btnClockIn = document.getElementById("btnClockIn");
+    const btnClockOut = document.getElementById("btnClockOut");
+
+    if (btnClockIn) {
+        btnClockIn?.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById("latitude_in").value = pos.coords.latitude;
+                    document.getElementById("longitude_in").value = pos.coords.longitude;
+                    document.getElementById("action").value = "clock_in";
+
+                    form.submit();
+                }, function(err) {
+                    alert("Lokasi gagal: " + err.message);
+                    form.submit();
+
+                });
+            } else {
+                form.submit();
+            }
+        });
+    }
+
+    if (btnClockOut) {
+        btnClockOut?.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    document.getElementById("latitude_out").value = pos.coords.latitude;
+                    document.getElementById("longitude_out").value = pos.coords.longitude;
+                    document.getElementById("action").value = "clock_out";
+
+                    form.submit();
+                }, function(err) {
+                    alert("Lokasi gagal: " + err.message);
+                    form.submit();
+
+                });
+            } else {
+                form.submit();
+            }
+        });
+    }
+</script>
