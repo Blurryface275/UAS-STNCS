@@ -91,7 +91,31 @@ class Task
         $stmt->bindParam(6, $task_id, PDO::PARAM_INT);
         $stmt->bindParam(7, $current_user_id, PDO::PARAM_INT);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+
+            $queryTask = "SELECT aktivitas, tanggal
+              FROM " . $this->table_name . "
+              WHERE id = ?";
+
+            $stmtTask = $this->conn->prepare($queryTask);
+            $stmtTask->bindParam(1, $task_id, PDO::PARAM_INT);
+            $stmtTask->execute();
+
+            $task = $stmtTask->fetch(PDO::FETCH_ASSOC);
+
+            $this->createTaskBlockchain(
+                $task_id,
+                $current_user_id,
+                $task['tanggal'],
+                $task['aktivitas'],
+                0,
+                $file_hash
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     public function count($powerLevel = null, $currentUserId = null)
@@ -117,5 +141,40 @@ class Task
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total_row'];
     }
+
+    private function createTaskBlockchain(
+        $taskId,
+        $userId,
+        $tanggal,
+        $aktivitas,
+        $durasi,
+        $fileHash
+    ) {
+        $data = [
+            "id" => "TASK" . $taskId,
+            "userID" => (string)$userId,
+            "tanggal" => $tanggal,
+            "aktivitas" => $aktivitas,
+            "durasi" => (string)$durasi,
+            "fileHash" => $fileHash
+        ];
+
+        $options = [
+            "http" => [
+                "header" => "Content-Type: application/json",
+                "method" => "POST",
+                "content" => json_encode($data)
+            ]
+        ];
+
+        $response = file_get_contents(
+            "http://localhost:3000/api/tasks",
+            false,
+            stream_context_create($options)
+        );
+
+        if ($response === false) {
+            error_log("Gagal mengirim Task ke blockchain");
+        }
+    }
 }
-?>

@@ -59,7 +59,7 @@ class Verification
         $query .= " ORDER BY v.id DESC LIMIT :from, :limit";
 
         $stmt = $this->conn->prepare($query);
-        
+
         if ($powerLevel !== null && $powerLevel < 5) {
             $stmt->bindParam(':powerLevel', $powerLevel, PDO::PARAM_INT);
         }
@@ -72,7 +72,7 @@ class Verification
     public function count($powerLevel = null, $status = null)
     {
         $query = "SELECT COUNT(*) as total_row FROM " . $this->table_name . " v LEFT JOIN users u ON v.users_id = u.id";
-        
+
         $conditions = [];
         if ($powerLevel !== null && $powerLevel < 5) {
             $conditions[] = "(6 - u.tipe_users_id) < :powerLevel";
@@ -80,20 +80,20 @@ class Verification
         if ($status !== null) {
             $conditions[] = "v.status = :status";
         }
-        
+
         if (!empty($conditions)) {
             $query .= " WHERE " . implode(" AND ", $conditions);
         }
-        
+
         $stmt = $this->conn->prepare($query);
-        
+
         if ($powerLevel !== null && $powerLevel < 5) {
             $stmt->bindParam(':powerLevel', $powerLevel, PDO::PARAM_INT);
         }
         if ($status !== null) {
             $stmt->bindParam(':status', $status, PDO::PARAM_STR);
         }
-        
+
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['total_row'];
@@ -102,20 +102,26 @@ class Verification
     public function updateStatus($id, $status, $catatan)
     {
         $this->conn->beginTransaction();
-        try {   
-             $query = "UPDATE " . $this->table_name . "
+
+        try {
+
+            $query = "UPDATE " . $this->table_name . "
                   SET status = ?, catatan = ?, tanggal_approval = NOW()
                   WHERE id = ?";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $status);
-        $stmt->bindParam(2, $catatan);
-        $stmt->bindParam(3, $id);
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(1, $status);
+            $stmt->bindParam(2, $catatan);
+            $stmt->bindParam(3, $id);
 
-        return $stmt->execute();
+            if (!$stmt->execute()) {
+                throw new Exception("Gagal update status");
+            }
 
-        if ($status === 'Disetujui') {
+            if ($status === 'Disetujui') {
+
                 $payload = $this->getApprovalPayload($id);
+
                 if (!empty($payload)) {
                     $this->sendToHyperledger($payload);
                 }
@@ -123,19 +129,20 @@ class Verification
 
             $this->conn->commit();
             return true;
-
         } catch (Exception $e) {
+
             $this->conn->rollBack();
-            error_log('Verification update failed: ' . $e->getMessage());
+            error_log($e->getMessage());
+
             return false;
         }
-       
     }
 
-        private function getApprovalPayload($verificationId)
+    private function getApprovalPayload($verificationId)
     {
-        $query = "SELECT 
+        $query = "SELECT
                     v.users_id,
+                    v.tasks_idtasks,
                     u.nama AS user_name,
                     t.aktivitas,
                     t.file_hash,
@@ -157,79 +164,33 @@ class Verification
         }
 
         return [
-            'recipient_id' => $row['users_id'] ?? null,
-            'employee_name' => $row['user_name'] ?? '',
-            'task_name' => $row['aktivitas'] ?? '',
-            'file_hash' => $row['file_hash'] ?? '',
-            'latitude' => $row['latitude'] ?? '',
-            'longitude' => $row['longitude'] ?? '',
-            'submitted_at' => $row['submitted_at'] ?? '',
-            'verification_id' => (int) $verificationId,
-            'status' => 'Disetujui'
+            'id' => "VER" . $verificationId,
+            'taskID' => "TASK" . $row['tasks_idtasks'],
+            'verifierID' => (string)$_SESSION['user_id'],
+            'status' => 'Disetujui',
+            'catatan' => 'Task telah diverifikasi'
         ];
     }
 
     private function sendToHyperledger($payload)
     {
-        $endpoint = getenv('HYPERLEDGER_API_URL') ?: getenv('FABRIC_API_URL') ?: ($_ENV['HYPERLEDGER_API_URL'] ?? null);
-        if (empty($endpoint)) {
-            error_log('Hyperledger endpoint not configured. Skipping blockchain sync.');
-            return true;
-        }
-
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json'
+        $options = [
+            "http" => [
+                "header" => "Content-Type: application/json",
+                "method" => "POST",
+                "content" => json_encode($payload)
+            ]
         ];
 
-        $token = getenv('HYPERLEDGER_API_TOKEN') ?: getenv('FABRIC_API_TOKEN') ?: ($_ENV['HYPERLEDGER_API_TOKEN'] ?? null);
-        if (!empty($token)) {
-            $headers[] = 'Authorization: Bearer ' . $token;
-        }
+        $response = file_get_contents(
+            "http://localhost:3000/api/verification",
+            false,
+            stream_context_create($options)
+        );
 
-        $payloadJson = json_encode($payload);
-        if ($payloadJson === false) {
-            error_log('Failed to encode Hyperledger payload.');
-            return false;
-        }
-
-        if (function_exists('curl_init')) {
-            $ch = curl_init($endpoint);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-
-            if ($response === false || $httpCode >= 400) {
-                error_log('Hyperledger sync failed: ' . ($error ?: 'HTTP ' . $httpCode));
-                return false;
-            }
-
-            return true;
-        }
-
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => implode($headers, "\r\n"),
-                'content' => $payloadJson,
-                'timeout' => 10
-            ]
-        ]);
-
-        $response = @file_get_contents($endpoint, false, $context);
         if ($response === false) {
-            error_log('Hyperledger sync failed via file_get_contents.');
-            return false;
+            error_log("Gagal mengirim Verification ke blockchain");
         }
-
-        return true;
     }
 
     public function create($tasks_id, $users_id)
@@ -245,4 +206,3 @@ class Verification
         return $stmt->execute();
     }
 }
-?>

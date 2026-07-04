@@ -202,11 +202,14 @@ class User
             $stmt->bindParam(':division', $division);
         } else { // Staff
             $query = "SELECT u.nama, u.email, u.divisi, u.status, t.nama AS tipe_user
-                  FROM users u
-                  LEFT JOIN tipe_users t ON u.tipe_users_id = t.id
-                  WHERE u.id = :userId";
+              FROM users u
+              LEFT JOIN tipe_users t ON u.tipe_users_id = t.id
+              WHERE u.id = :userId
+              LIMIT :limit";
+
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         }
 
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);

@@ -194,11 +194,10 @@ class Kehadiran
 
         $stmt = $this->conn->prepare($query);
 
-        if ($tipeUserId == 4 || $tipeUserId == 3) {
-            $stmt->bindParam(1, $division);
-        }
         if ($tipeUserId == 5) {
-            $stmt->bindParam(2, $_SESSION['user_id']);
+            $stmt->bindParam(1, $_SESSION['user_id'], PDO::PARAM_INT);
+        } elseif ($tipeUserId == 4 || $tipeUserId == 3) {
+            $stmt->bindParam(1, $division);
         }
 
         $stmt->execute();
@@ -288,7 +287,21 @@ class Kehadiran
         $stmt->bindValue(2, $latitude_in);
         $stmt->bindValue(3, $longitude_in);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+
+            $attendanceId = $this->conn->lastInsertId();
+
+            $this->createAttendanceBlockchain(
+                $attendanceId,
+                $users_id,
+                date('Y-m-d'),
+                date('H:i:s')
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     public function clockOut($users_id, $latitude_out, $longitude_out)
@@ -308,6 +321,68 @@ class Kehadiran
         $stmt->bindValue(2, $longitude_out);
         $stmt->bindValue(3, $users_id);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+
+            $attendance = $this->getTodayAttendance($users_id);
+
+            $this->updateAttendanceBlockchain(
+                $attendance['id'],
+                date('H:i:s')
+            );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private function createAttendanceBlockchain($id, $userId, $tanggal, $clockIn)
+    {
+        $data = [
+            "id" => "ATT" . $id,
+            "userID" => (string)$userId,
+            "tanggal" => $tanggal,
+            "clockIn" => $clockIn,
+            "clockOut" => ""
+        ];
+
+        $options = [
+            "http" => [
+                "header" => "Content-Type: application/json",
+                "method" => "POST",
+                "content" => json_encode($data)
+            ]
+        ];
+
+        $response = @file_get_contents(
+            "http://localhost:3000/api/attendance",
+            false,
+            stream_context_create($options)
+        );
+
+        if ($response === false) {
+            error_log("Gagal mengirim attendance ke blockchain");
+        }
+    }
+
+    private function updateAttendanceBlockchain($id, $clockOut)
+    {
+        $data = [
+            "clockOut" => $clockOut
+        ];
+
+        $options = [
+            "http" => [
+                "header" => "Content-Type: application/json",
+                "method" => "PUT",
+                "content" => json_encode($data)
+            ]
+        ];
+
+        file_get_contents(
+            "http://localhost:3000/api/attendance/ATT" . $id,
+            false,
+            stream_context_create($options)
+        );
     }
 }
