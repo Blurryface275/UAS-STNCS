@@ -177,7 +177,7 @@ $total_pages = ceil($total_rows / $records_per_page);
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($row['status'] == 'Pending'): ?>
+                                    <?php if ($row['status'] == 'Pending' && !empty($row['file_lampiran'])): ?>
                                         <form method="POST"
                                             style="display:flex; flex-direction:column; gap:6px; min-width:180px;">
                                             <input type="hidden" name="verification_id"

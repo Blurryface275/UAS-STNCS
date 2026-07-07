@@ -104,6 +104,20 @@ class Verification
         $this->conn->beginTransaction();
 
         try {
+            $queryCheck = "SELECT t.file_lampiran
+                       FROM tasks t
+                       JOIN verifications v ON v.tasks_idtasks = t.id
+                       WHERE v.id = ?";
+
+            $stmtCheck = $this->conn->prepare($queryCheck);
+            $stmtCheck->bindParam(1, $id, PDO::PARAM_INT);
+            $stmtCheck->execute();
+
+            $data = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+            if (empty($data['file_lampiran'])) {
+                throw new Exception("Task belum disubmit sehingga belum dapat diverifikasi.");
+            }
 
             $query = "UPDATE " . $this->table_name . "
                   SET status = ?, catatan = ?, tanggal_approval = NOW()
@@ -118,13 +132,10 @@ class Verification
                 throw new Exception("Gagal update status");
             }
 
-            if ($status === 'Disetujui') {
+            $payload = $this->getApprovalPayload($id, $status, $catatan);
 
-                $payload = $this->getApprovalPayload($id);
-
-                if (!empty($payload)) {
-                    $this->sendToHyperledger($payload);
-                }
+            if (!empty($payload)) {
+                $this->sendToHyperledger($payload);
             }
 
             $this->conn->commit();
@@ -138,7 +149,7 @@ class Verification
         }
     }
 
-    private function getApprovalPayload($verificationId)
+    private function getApprovalPayload($verificationId, $status, $catatan)
     {
         $query = "SELECT
                     v.users_id,
@@ -167,8 +178,8 @@ class Verification
             'id' => "VER" . $verificationId,
             'taskID' => "TASK" . $row['tasks_idtasks'],
             'verifierID' => (string)$_SESSION['user_id'],
-            'status' => 'Disetujui',
-            'catatan' => 'Task telah diverifikasi'
+            'status' => $status,
+            'catatan' => $catatan
         ];
     }
 
